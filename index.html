@@ -4,18 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Photobooth</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mali:wght@600;700&family=Prompt:wght@400;600;800&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-:root{--bg:#2b1b3d;--panel:#3a2650;--ink:#fff6ea;--mute:#bfaed6;--red:#e8472f;--gold:#f2b632;--teal:#2a9d8f;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+:root{--bg:#2b1b3d;--panel:#3a2650;--ink:#fff6ea;--mute:#bfaed6;--red:#e8472f;--gold:#f2b632;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 *,*::before,*::after{box-sizing:inherit}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:'Prompt',system-ui,sans-serif;min-height:100vh}
 main{max-width:1060px;margin:0 auto;padding:20px 16px 40px;display:grid;gap:24px;grid-template-columns:1fr}
 @media(min-width:860px){main{grid-template-columns:1.25fr 1fr;align-items:start}}
 h1{grid-column:1/-1;margin:0;font-weight:800;font-size:clamp(2.2rem,7vw,3.6rem);letter-spacing:-.02em;line-height:1}
 h1 span{color:var(--gold)}
-.sub{grid-column:1/-1;margin:-12px 0 0;color:var(--mute)}
 .booth{background:var(--panel);border-radius:28px;padding:14px;border:3px solid var(--gold)}
 .screen{position:relative;aspect-ratio:4/3;background:#150d20;border-radius:16px;overflow:hidden}
 video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
@@ -39,19 +38,23 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-within
 .chip input{position:absolute;opacity:0;inset:0;cursor:pointer}
 .chip span{display:block;padding:8px 16px;border-radius:999px;background:#4a3563;pointer-events:none}
 .chip input:checked+span{background:var(--gold);color:#2b1b3d;font-weight:600}
-.sw{width:34px;height:34px;border-radius:50%;border:3px solid transparent;padding:0}
-.sw[aria-pressed=true]{border-color:var(--ink)}
 label.t{display:block;color:var(--mute);font-size:.9rem;margin:16px 0 6px}
 .side{display:flex;flex-direction:column;align-items:center}
 #strip{width:min(100%,300px);height:auto;border-radius:4px;box-shadow:0 14px 40px rgba(0,0,0,.45);background:#fff}
-.hint{color:var(--mute);text-align:center;margin:8px 0 0;font-size:.95rem}
+.set{grid-column:1/-1;background:var(--panel);border-radius:16px;padding:12px 16px;color:var(--mute)}
+.set input{width:100%;margin:6px 0}
+#ov{position:fixed;inset:0;background:rgba(15,8,25,.92);display:grid;place-items:center;padding:16px;z-index:9;overflow:auto}
+.card{background:var(--panel);border:3px solid var(--gold);border-radius:28px;padding:24px;max-width:420px;width:100%;text-align:center}
+.card h2{margin:0 0 14px;font-size:1.6rem}
+#qrbox{background:#fff;padding:16px;border-radius:16px;display:none;margin:0 auto}
+#st{margin:14px 0 0;color:var(--mute)}
+.card .row{justify-content:center}
 @media(prefers-reduced-motion:reduce){#flash.go{animation:none}}
 </style>
 </head>
 <body>
 <main>
 <h1>Photo<span>booth</span></h1>
-<p class="sub">ถ่าย 4 รูปติดกัน ได้แถบรูปแนวตั้งพร้อมโหลด</p>
 
 <section>
 <div class="booth">
@@ -64,6 +67,7 @@ label.t{display:block;color:var(--mute);font-size:.9rem;margin:16px 0 6px}
 <div class="row" style="justify-content:center">
 <button id="open">เปิดกล้อง</button>
 <button id="shoot" class="main" disabled>เริ่มถ่าย</button>
+<button id="fs">เต็มจอ</button>
 </div>
 </div>
 <label class="t" for="cam">เลือกกล้อง (กล้อง Fuji ที่ต่อเป็นเว็บแคมจะอยู่ในลิสต์นี้)</label>
@@ -74,58 +78,91 @@ label.t{display:block;color:var(--mute);font-size:.9rem;margin:16px 0 6px}
 
 <section class="side">
 <canvas id="strip" width="640" height="1960"></canvas>
-<p class="hint" id="hint">ตัวอย่างแถบรูป — ถ่ายเสร็จแล้วจะมาแทนที่ตรงนี้</p>
 <div style="width:100%">
+<label class="t">ธีมงาน</label>
+<div class="chips" id="themes"></div>
 <label class="t" for="cap">ข้อความท้ายแถบ</label>
-<input type="text" id="cap" value="Happy Birthday" maxlength="28" style="width:100%">
-<label class="t">สีกรอบ</label>
-<div class="row" id="frames" style="margin-top:0"></div>
+<input type="text" id="cap" maxlength="28" style="width:100%">
+<label class="t" for="logo">โลโก้หรือกราฟิกของงาน (ไฟล์ PNG พื้นใส จะวางท้ายแถบ)</label>
+<input type="file" id="logo" accept="image/*" style="width:100%">
 <div class="row">
 <button id="dl" disabled>ดาวน์โหลด PNG</button>
 <button id="again" disabled>ถ่ายใหม่</button>
 </div>
 </div>
 </section>
+
+<details class="set">
+<summary>ตั้งค่าอัปโหลดรูปสำหรับ QR (สำหรับคนจัดงาน)</summary>
+<input type="text" id="cloud" placeholder="Cloudinary cloud name" autocomplete="off">
+<input type="text" id="preset" placeholder="Upload preset (แบบ unsigned)" autocomplete="off">
+<button id="saveCfg">บันทึก</button>
+</details>
 </main>
+
+<div id="ov" hidden>
+<div class="card">
+<h2>สแกนเพื่อเซฟรูป</h2>
+<div id="qrbox"></div>
+<p id="st"></p>
+<div class="row">
+<button id="retry" hidden>ลองส่งอีกครั้ง</button>
+<button id="dl2">ดาวน์โหลดสำรอง</button>
+<button id="close" class="main">ถ่ายชุดใหม่</button>
+</div>
+</div>
+</div>
 
 <script>
 const $=id=>document.getElementById(id);
 const v=$('v'),cam=$('cam'),strip=$('strip'),sctx=strip.getContext('2d');
-const FILTERS={'ปกติ':'none','ขาวดำ':'grayscale(1) contrast(1.1)','ซีเปีย':'sepia(.85) contrast(1.05)','ฟิล์ม':'sepia(.25) saturate(1.4) contrast(1.1) hue-rotate(-8deg)'};
-const FRAMES=['#ffffff','#f7c6d0','#bfe3dc','#1d1230'];
-let filter='ปกติ',frame=FRAMES[0],shots=[],stream=null,busy=false;
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+// ใส่ค่าตรงนี้ได้เลย จะได้ไม่ต้องกรอกในหน้าเว็บทุกครั้ง
+const CFG={cloud:'',preset:''};
 
-// UI: filters + frame swatches
-Object.keys(FILTERS).forEach((k,i)=>{
-  const l=document.createElement('label');l.className='chip';
-  l.innerHTML='<input type="radio" name="f" '+(i?'':'checked')+'><span>'+k+'</span>';
-  l.firstChild.onchange=()=>{filter=k;v.style.filter=FILTERS[k];draw()};
-  $('filters').appendChild(l);
-});
-FRAMES.forEach((c,i)=>{
-  const b=document.createElement('button');b.className='sw';b.style.background=c;
-  b.setAttribute('aria-label','สีกรอบ '+(i+1));b.setAttribute('aria-pressed',i==0);
-  b.onclick=()=>{frame=c;[...$('frames').children].forEach(x=>x.setAttribute('aria-pressed',x===b));draw()};
-  $('frames').appendChild(b);
-});
-$('cap').oninput=draw;
+const FILTERS={'ปกติ':'none','ขาวดำ':'grayscale(1) contrast(1.1)','ซีเปีย':'sepia(.85) contrast(1.05)','ฟิล์ม':'sepia(.25) saturate(1.4) contrast(1.1) hue-rotate(-8deg)'};
+const THEMES={
+ kids:{n:'การ์ตูน',bg:'#ffe9a8',ink:'#3b2a6b',acc:['#ff5d73','#4cc9f0','#7bd88f','#ff9f1c'],font:'Mali',cap:'Happy Birthday',deco:'confetti'},
+ wedding:{n:'มินิมอล',bg:'#ffffff',ink:'#4d5b4a',acc:['#b79a5b'],font:'Prompt',cap:'Our Wedding Day',deco:'line'},
+ corp:{n:'อีเวนต์',bg:'#10203f',ink:'#ffffff',acc:['#2ee6c5','#ff4f81'],font:'Prompt',cap:'#YourEvent',deco:'stripes'},
+ school:{n:'โรงเรียน',bg:'#cfe8ff',ink:'#17356b',acc:['#ffd23f','#ff6b6b','#2fbf71'],font:'Mali',cap:'Fun Day',deco:'stars'}
+};
+let filter='ปกติ',theme='kids',shots=[],stream=null,busy=false,logo=null,capEdited=false,lastBlob=null;
+
+function chips(el,obj,name,get,on){
+  Object.keys(obj).forEach((k,i)=>{
+    const l=document.createElement('label');l.className='chip';
+    l.innerHTML='<input type="radio" name="'+name+'" '+(i?'':'checked')+'><span>'+get(obj[k],k)+'</span>';
+    l.firstChild.onchange=()=>on(k);el.appendChild(l);
+  });
+}
+chips($('filters'),FILTERS,'f',(o,k)=>k,k=>{filter=k;v.style.filter=FILTERS[k]});
+chips($('themes'),THEMES,'t',o=>o.n,k=>{theme=k;if(!capEdited)$('cap').value=THEMES[k].cap;draw()});
+$('cap').value=THEMES.kids.cap;
+$('cap').oninput=()=>{capEdited=true;draw()};
+$('logo').onchange=e=>{
+  const f=e.target.files[0];if(!f){logo=null;draw();return}
+  const img=new Image();img.onload=()=>{logo=img;draw()};img.src=URL.createObjectURL(f);
+};
 
 // camera
 async function start(id){
   if(stream)stream.getTracks().forEach(t=>t.stop());
+  const vc={width:{ideal:1920},height:{ideal:1080}};if(id)vc.deviceId={exact:id};
   try{
-    stream=await navigator.mediaDevices.getUserMedia({video:id?{deviceId:{exact:id},width:{ideal:1920},height:{ideal:1080}}:{width:{ideal:1920},height:{ideal:1080}},audio:false});
+    stream=await navigator.mediaDevices.getUserMedia({video:vc,audio:false});
     v.srcObject=stream;await v.play();$('msg').style.display='none';$('shoot').disabled=false;
     const list=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');
     const cur=stream.getVideoTracks()[0].getSettings().deviceId;
     cam.innerHTML=list.map((d,i)=>'<option value="'+d.deviceId+'"'+(d.deviceId===cur?' selected':'')+'>'+(d.label||'กล้อง '+(i+1))+'</option>').join('');
   }catch(e){
     $('msg').style.display='grid';
-    $('msg').textContent='เปิดกล้องไม่ได้: เช็กว่าอนุญาตกล้องแล้ว และเปิดหน้านี้ผ่าน HTTPS ถ้าอยู่ในหน้าต่างฝัง ให้เปิดลิงก์ในแท็บใหม่';
+    $('msg').textContent='เปิดกล้องไม่ได้: เช็กว่าอนุญาตกล้องแล้ว และเปิดหน้านี้ผ่าน HTTPS';
   }
 }
 $('open').onclick=()=>start();
 cam.onchange=()=>start(cam.value);
+$('fs').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}catch(e){}};
 
 // capture
 function snap(){
@@ -134,7 +171,7 @@ function snap(){
   const r=Math.max(tw/w,th/h),sw=tw/r,sh=th/r;
   x.save();x.translate(tw,0);x.scale(-1,1);
   if('filter' in x){x.filter=FILTERS[filter];x.drawImage(v,(w-sw)/2,(h-sh)/2,sw,sh,0,0,tw,th)}
-  else{ // Safari fallback
+  else{
     x.drawImage(v,(w-sw)/2,(h-sh)/2,sw,sh,0,0,tw,th);
     if(filter!=='ปกติ'){const d=x.getImageData(0,0,tw,th),p=d.data;
       for(let i=0;i<p.length;i+=4){const g=.3*p[i]+.59*p[i+1]+.11*p[i+2];
@@ -144,10 +181,10 @@ function snap(){
   }
   x.restore();return c;
 }
-const wait=ms=>new Promise(r=>setTimeout(r,ms));
+function resetDots(){document.querySelectorAll('#dots i').forEach(i=>i.className='')}
 async function run(){
   if(busy)return;busy=true;shots=[];$('shoot').disabled=true;$('dl').disabled=$('again').disabled=true;
-  document.querySelectorAll('#dots i').forEach(i=>i.className='');draw();
+  resetDots();draw();
   for(let n=0;n<4;n++){
     $('count').style.display='grid';
     for(let s=3;s>0;s--){$('count').textContent=s;await wait(1000)}
@@ -157,33 +194,99 @@ async function run(){
     await wait(700);
   }
   busy=false;$('shoot').disabled=false;$('dl').disabled=$('again').disabled=false;
-  $('hint').textContent='แถบรูปพร้อมแล้ว — กดดาวน์โหลดได้เลย';
+  finish();
 }
 $('shoot').onclick=run;
-$('again').onclick=()=>{shots=[];document.querySelectorAll('#dots i').forEach(i=>i.className='');$('dl').disabled=$('again').disabled=true;$('hint').textContent='ตัวอย่างแถบรูป — ถ่ายเสร็จแล้วจะมาแทนที่ตรงนี้';draw()};
+function reset(){shots=[];resetDots();$('dl').disabled=$('again').disabled=true;$('ov').hidden=true;draw()}
+$('again').onclick=reset;$('close').onclick=reset;
 
-// strip layout: 640 x 1960, 4 photos 560x420
+// drawing helpers
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function star(c,x,y,r,col){c.fillStyle=col;c.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,q=i%2?r*.45:r;c.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q)}c.closePath();c.fill()}
+function heart(c,x,y,r,col){c.fillStyle=col;c.beginPath();c.moveTo(x,y+r*.9);c.bezierCurveTo(x-r*1.6,y-r*.2,x-r*.6,y-r*1.2,x,y-r*.4);c.bezierCurveTo(x+r*.6,y-r*1.2,x+r*1.6,y-r*.2,x,y+r*.9);c.fill()}
+
 function draw(){
-  const W=640,H=1960,P=40,pw=560,ph=420,gap=24;
-  sctx.fillStyle=frame;sctx.fillRect(0,0,W,H);
-  const dark=frame==='#1d1230',ink=dark?'#fff6ea':'#2b1b3d';
+  const T=THEMES[theme],c=sctx,W=640,P=40,pw=560,ph=420,gap=24,fy=P+4*ph+3*gap,H=fy+(logo?300:190);
+  strip.height=H;
+  c.fillStyle=T.bg;c.fillRect(0,0,W,H);
+  const R=rng(7);
+  if(T.deco==='confetti'||T.deco==='stars'){
+    for(let i=0;i<110;i++){
+      const x=R()*W,y=R()*H,col=T.acc[i%T.acc.length],s=6+R()*10,k=R();
+      if(T.deco==='stars'||k<.3)star(c,x,y,s*1.3,col);
+      else if(k<.65){c.fillStyle=col;c.beginPath();c.arc(x,y,s/2,0,7);c.fill()}
+      else{c.save();c.translate(x,y);c.rotate(R()*3);c.fillStyle=col;c.fillRect(-s/2,-s/4,s,s/2);c.restore()}
+    }
+  }else if(T.deco==='line'){
+    c.strokeStyle=T.acc[0];c.lineWidth=3;c.strokeRect(12,12,W-24,H-24);c.lineWidth=1;c.strokeRect(22,22,W-44,H-44);
+  }else{
+    c.fillStyle=T.acc[0];c.beginPath();c.moveTo(0,0);c.lineTo(260,0);c.lineTo(0,260);c.fill();
+    c.fillStyle=T.acc[1];c.beginPath();c.moveTo(W,H);c.lineTo(W-260,H);c.lineTo(W,H-260);c.fill();
+  }
+  const ink=T.ink;
   for(let i=0;i<4;i++){
     const y=P+i*(ph+gap);
-    if(shots[i])sctx.drawImage(shots[i],0,0,800,600,P,y,pw,ph);
-    else{sctx.fillStyle=dark?'#2e2144':'rgba(43,27,61,.1)';sctx.fillRect(P,y,pw,ph);
-      sctx.fillStyle=ink;sctx.globalAlpha=.35;sctx.font='600 64px Prompt,sans-serif';sctx.textAlign='center';
-      sctx.fillText(String(i+1),W/2,y+ph/2+22);sctx.globalAlpha=1}
+    if(shots[i])c.drawImage(shots[i],0,0,800,600,P,y,pw,ph);
+    else{c.fillStyle='rgba(128,128,150,.25)';c.fillRect(P,y,pw,ph);
+      c.fillStyle=ink;c.globalAlpha=.4;c.font='600 64px Prompt,sans-serif';c.textAlign='center';c.fillText(String(i+1),W/2,y+ph/2+22);c.globalAlpha=1}
+    c.strokeStyle=ink;c.lineWidth=6;c.strokeRect(P,y,pw,ph);
+    if(T.deco==='confetti'||T.deco==='stars')star(c,P+pw-6,y+6,34,T.acc[i%T.acc.length]);
+    else if(T.deco==='line')heart(c,P+pw-22,y+ph-22,14,T.acc[0]);
+    else{c.strokeStyle=T.acc[0];c.lineWidth=8;c.beginPath();c.moveTo(P-8,y+40);c.lineTo(P-8,y-8);c.lineTo(P+40,y-8);c.moveTo(P+pw+8,y+ph-40);c.lineTo(P+pw+8,y+ph+8);c.lineTo(P+pw-40,y+ph+8);c.stroke()}
   }
-  const fy=P+4*ph+3*gap;
-  sctx.fillStyle=ink;sctx.textAlign='center';
-  sctx.font='800 52px Prompt,sans-serif';sctx.fillText($('cap').value,W/2,fy+78);
-  sctx.globalAlpha=.6;sctx.font='400 26px Prompt,sans-serif';
-  sctx.fillText(new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}),W/2,fy+122);
-  sctx.globalAlpha=1;
+  const wt=T.font==='Mali'?'700':'800',txt=$('cap').value;
+  let fs=54;c.fillStyle=ink;c.textAlign='center';c.font=wt+' '+fs+'px '+T.font+',Prompt,sans-serif';
+  while(c.measureText(txt).width>pw&&fs>28){fs-=2;c.font=wt+' '+fs+'px '+T.font+',Prompt,sans-serif'}
+  c.fillText(txt,W/2,fy+78);
+  c.globalAlpha=.7;c.font='400 26px Prompt,sans-serif';
+  c.fillText(new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}),W/2,fy+122);
+  c.globalAlpha=1;
+  if(logo){const r=Math.min(300/logo.width,110/logo.height),lw=logo.width*r,lh=logo.height*r;c.drawImage(logo,(W-lw)/2,fy+150+(110-lh)/2,lw,lh)}
 }
-$('dl').onclick=()=>{const a=document.createElement('a');a.download='photobooth-'+Date.now()+'.png';a.href=strip.toDataURL('image/png');a.click()};
+function dl(){const a=document.createElement('a');a.download='photobooth-'+Date.now()+'.png';a.href=strip.toDataURL('image/png');a.click()}
+$('dl').onclick=dl;$('dl2').onclick=dl;
+
+// upload + QR
+function cfg(){try{const s=JSON.parse(localStorage.getItem('pb')||'{}');return{cloud:s.cloud||CFG.cloud,preset:s.preset||CFG.preset}}catch(e){return CFG}}
+const c0=cfg();$('cloud').value=c0.cloud;$('preset').value=c0.preset;
+$('saveCfg').onclick=()=>{try{localStorage.setItem('pb',JSON.stringify({cloud:$('cloud').value.trim(),preset:$('preset').value.trim()}))}catch(e){}$('saveCfg').textContent='บันทึกแล้ว'};
+async function upload(blob){
+  const {cloud,preset}=cfg();if(!cloud||!preset)throw new Error('nocfg');
+  let err;
+  for(let n=0;n<3;n++){
+    const ac=new AbortController(),t=setTimeout(()=>ac.abort(),20000);
+    try{
+      const fd=new FormData();fd.append('file',blob,'strip.jpg');fd.append('upload_preset',preset);
+      const r=await fetch('https://api.cloudinary.com/v1_1/'+encodeURIComponent(cloud)+'/image/upload',{method:'POST',body:fd,signal:ac.signal});
+      const j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||'fail');
+      return j.secure_url;
+    }catch(e){err=e;await wait(1500)}finally{clearTimeout(t)}
+  }
+  throw err;
+}
+const setSt=t=>$('st').textContent=t;
+async function send(){
+  $('retry').hidden=true;$('qrbox').style.display='none';$('qrbox').innerHTML='';setSt('กำลังอัปโหลดรูป...');
+  try{
+    const u=await upload(lastBlob);
+    if(typeof QRCode==='undefined'){setSt('สร้าง QR ไม่ได้ ลิงก์รูปคือ '+u);return}
+    $('qrbox').style.display='inline-block';
+    new QRCode($('qrbox'),{text:u,width:260,height:260,correctLevel:QRCode.CorrectLevel.M});
+    setSt('สแกนแล้วกดค้างที่รูปเพื่อเซฟลงมือถือ');
+  }catch(e){
+    setSt(e.message==='nocfg'?'ยังไม่ได้ตั้งค่าอัปโหลด (ดูช่องตั้งค่าท้ายหน้า) ระหว่างนี้โหลดรูปสำรองไว้ก่อนได้':'อัปโหลดไม่สำเร็จ เช็กเน็ตแล้วกดลองอีกครั้ง หรือโหลดรูปสำรองไว้ก่อน');
+    $('retry').hidden=false;
+  }
+}
+async function finish(){
+  $('ov').hidden=false;
+  lastBlob=await new Promise(r=>strip.toBlob(r,'image/jpeg',.9));
+  send();
+}
+$('retry').onclick=send;
+
 draw();
-if(document.fonts)document.fonts.ready.then(draw);
+if(document.fonts)Promise.all([document.fonts.load('700 40px Mali'),document.fonts.load('800 40px Prompt'),document.fonts.load('400 26px Prompt')]).then(draw);
 </script>
 </body>
 </html>
