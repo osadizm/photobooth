@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Photobooth</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mali:wght@600;700&family=Prompt:wght@400;600;800&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -49,6 +51,8 @@ label.t{display:block;color:var(--mute);font-size:.9rem;margin:16px 0 6px}
 #qrbox{background:#fff;padding:16px;border-radius:16px;display:none;margin:0 auto}
 #st{margin:14px 0 0;color:var(--mute)}
 .card .row{justify-content:center}
+#pr{display:none}
+@media print{body{background:#fff}:root{padding:0}body>*:not(#pr){display:none!important}#pr{display:flex;width:100%;height:100vh}#pr img{flex:1;min-width:0;height:100%;object-fit:contain;display:block}}
 @media(prefers-reduced-motion:reduce){#flash.go{animation:none}}
 </style>
 </head>
@@ -87,8 +91,12 @@ label.t{display:block;color:var(--mute);font-size:.9rem;margin:16px 0 6px}
 <input type="file" id="logo" accept="image/*" style="width:100%">
 <div class="row">
 <button id="dl" disabled>ดาวน์โหลด PNG</button>
+<button id="pb">สั่งปริ้น</button>
 <button id="again" disabled>ถ่ายใหม่</button>
 </div>
+<label class="t" for="pm">ขนาดกระดาษที่ปริ้น</label>
+<select id="pm" style="width:100%"><option value="2">4x6 นิ้ว (2 แถบ ตัดครึ่ง)</option><option value="1">2x6 นิ้ว (แถบเดียว)</option></select>
+<label class="t"><input type="checkbox" id="ap"> ปริ้นอัตโนมัติหลังถ่ายครบ 4 รูป</label>
 </div>
 </section>
 
@@ -100,6 +108,8 @@ label.t{display:block;color:var(--mute);font-size:.9rem;margin:16px 0 6px}
 </details>
 </main>
 
+<div id="pr"></div>
+<style id="pg"></style>
 <div id="ov" hidden>
 <div class="card">
 <h2>สแกนเพื่อเซฟรูป</h2>
@@ -108,6 +118,7 @@ label.t{display:block;color:var(--mute);font-size:.9rem;margin:16px 0 6px}
 <div class="row">
 <button id="retry" hidden>ลองส่งอีกครั้ง</button>
 <button id="dl2">ดาวน์โหลดสำรอง</button>
+<button id="pb2">สั่งปริ้น</button>
 <button id="close" class="main">ถ่ายชุดใหม่</button>
 </div>
 </div>
@@ -162,7 +173,13 @@ async function start(id){
 }
 $('open').onclick=()=>start();
 cam.onchange=()=>start(cam.value);
-$('fs').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}catch(e){}};
+$('fs').onclick=async()=>{
+  const d=document,e=d.documentElement,on=d.fullscreenElement||d.webkitFullscreenElement;
+  try{
+    if(on){await (d.exitFullscreen||d.webkitExitFullscreen).call(d)}
+    else{const f=e.requestFullscreen||e.webkitRequestFullscreen;if(!f)throw 0;await f.call(e)}
+  }catch(err){alert('เบราว์เซอร์นี้เปิดเต็มจอจากปุ่มไม่ได้ ลองกด F11 (คอม) หรือเพิ่มหน้านี้ไว้ที่หน้าจอโฮม (มือถือ/iPad) แล้วเปิดจากไอคอน')}
+};
 
 // capture
 function snap(){
@@ -246,6 +263,18 @@ function draw(){
 function dl(){const a=document.createElement('a');a.download='photobooth-'+Date.now()+'.png';a.href=strip.toDataURL('image/png');a.click()}
 $('dl').onclick=dl;$('dl2').onclick=dl;
 
+// print: 4x6 in (2 strips side by side, cut in half) or single 2x6 in strip
+async function doPrint(){
+  if(shots.length<4){alert('ถ่ายให้ครบ 4 รูปก่อนค่อยสั่งปริ้น');return}
+  const n=$('pm').value==='2'?2:1;
+  $('pg').textContent='@page{size:'+(n*2)+'in 6in;margin:0}';
+  const u=strip.toDataURL('image/png');
+  $('pr').innerHTML=('<img src="'+u+'">').repeat(n);
+  await Promise.all([...$('pr').querySelectorAll('img')].map(i=>i.decode().catch(()=>{})));
+  window.print();
+}
+$('pb').onclick=doPrint;$('pb2').onclick=doPrint;
+
 // upload + QR
 function cfg(){try{const s=JSON.parse(localStorage.getItem('pb')||'{}');return{cloud:s.cloud||CFG.cloud,preset:s.preset||CFG.preset}}catch(e){return CFG}}
 const c0=cfg();$('cloud').value=c0.cloud;$('preset').value=c0.preset;
@@ -282,6 +311,7 @@ async function finish(){
   $('ov').hidden=false;
   lastBlob=await new Promise(r=>strip.toBlob(r,'image/jpeg',.9));
   send();
+  if($('ap').checked)doPrint();
 }
 $('retry').onclick=send;
 
