@@ -300,8 +300,8 @@ async function send(){
     const u=await upload(lastBlob);
     if(typeof QRCode==='undefined'){setSt('สร้าง QR ไม่ได้ ลิงก์รูปคือ '+u);return}
     $('qrbox').style.display='inline-block';
-    new QRCode($('qrbox'),{text:u,width:260,height:260,correctLevel:QRCode.CorrectLevel.M});
-    setSt('สแกนแล้วกดค้างที่รูปเพื่อเซฟลงมือถือ');
+    new QRCode($('qrbox'),{text:new URL('v.html?u='+encodeURIComponent(u),location.href).href,width:260,height:260,correctLevel:QRCode.CorrectLevel.M});
+    setSt('สแกนแล้วกดปุ่ม "บันทึกรูปลงมือถือ"');
   }catch(e){
     setSt(e.message==='nocfg'?'ยังไม่ได้ตั้งค่าอัปโหลด (ดูช่องตั้งค่าท้ายหน้า) ระหว่างนี้โหลดรูปสำรองไว้ก่อนได้':'อัปโหลดไม่สำเร็จ เช็กเน็ตแล้วกดลองอีกครั้ง หรือโหลดรูปสำรองไว้ก่อน');
     $('retry').hidden=false;

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>รูปของคุณ</title>
+<style>
+:root{color-scheme:dark}
+body{margin:0;background:#2b1b3d;color:#fff6ea;font-family:system-ui,-apple-system,'Prompt',sans-serif;text-align:center;padding:16px}
+img{max-width:100%;height:auto;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+button{border:0;border-radius:999px;padding:14px 28px;font-size:1.1rem;font-weight:600;background:#e8472f;color:#fff;margin:16px 0 8px}
+p{color:#bfaed6;margin:8px 0}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<p id="m">กำลังโหลดรูป...</p>
+<img id="im" alt="รูปจากตู้ถ่ายรูป" hidden>
+<div><button id="sv" hidden>บันทึกรูปลงมือถือ</button></div>
+<p id="h" hidden>ถ้าปุ่มไม่ทำงาน ให้กดค้างที่รูป แล้วเลือก "บันทึกไปยังรูปภาพ" (Save to Photos)</p>
+<script>
+const u=new URLSearchParams(location.search).get('u'),m=document.getElementById('m'),im=document.getElementById('im'),sv=document.getElementById('sv'),h=document.getElementById('h');
+if(!u||!/^https:\/\/res\.cloudinary\.com\//.test(u)){m.textContent='ลิงก์รูปไม่ถูกต้อง'}
+else{
+  im.onload=()=>{m.hidden=true;im.hidden=false;sv.hidden=false;h.hidden=false};
+  im.onerror=()=>{m.textContent='โหลดรูปไม่ได้ ลองสแกนใหม่อีกครั้ง'};
+  im.src=u;
+  sv.onclick=async()=>{
+    try{
+      const b=await (await fetch(u)).blob(),f=new File([b],'photobooth.jpg',{type:b.type||'image/jpeg'});
+      if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}
+      const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='photobooth.jpg';a.click();
+    }catch(e){}
+  };
+}
+</script>
+</body>
+</html>
