@@ -51,6 +51,24 @@ label.t{display:block;color:var(--mute);font-size:.9rem;margin:16px 0 6px}
 #qrbox{background:#fff;padding:16px;border-radius:16px;display:none;margin:0 auto}
 #st{margin:14px 0 0;color:var(--mute)}
 .card .row{justify-content:center}
+#idle{display:none;position:absolute;inset:0;z-index:3;background:rgba(21,13,32,.55);place-items:center;text-align:center;cursor:pointer;padding:20px}
+#idle b{display:block;font-size:clamp(2rem,8vw,4.5rem);font-weight:800;line-height:1.1}
+#idle span{display:inline-block;margin-top:18px;background:var(--red);padding:16px 36px;border-radius:999px;font-size:clamp(1.2rem,4vw,2rem);font-weight:600}
+#cornr{display:none;position:fixed;top:0;left:0;width:90px;height:90px;z-index:20}
+body.kiosk{background:#150d20}
+body.kiosk main{max-width:none;padding:0;display:block}
+body.kiosk h1,body.kiosk .side,body.kiosk .set,body.kiosk main>section:first-of-type>:not(.booth){display:none}
+body.kiosk .booth{border:0;border-radius:0;height:100vh;display:flex;flex-direction:column;padding:0}
+body.kiosk .screen{flex:1;aspect-ratio:auto;border-radius:0}
+body.kiosk .booth .row{display:none}
+body.kiosk:not(.running) #idle{display:grid}
+body.kiosk #cornr{display:block}
+body.kiosk #ov{inset:0 0 0 auto;width:min(360px,40vw);background:#1b1129;padding:12px;border-left:3px solid var(--gold)}
+body.kiosk #ov .card{border:0;padding:12px;background:transparent}
+body.kiosk #ov .card h2{font-size:1.3rem}
+body.kiosk #qrbox img,body.kiosk #qrbox canvas{max-width:100%;height:auto!important}
+body.kiosk #close,body.kiosk #dl2{display:none}
+body.kiosk:has(#ov:not([hidden])) .booth{margin-right:min(360px,40vw)}
 #pr{display:none}
 @media print{body{background:#fff}:root{padding:0}body>*:not(#pr){display:none!important}#pr{display:flex;width:100%;height:100vh}#pr img{flex:1;min-width:0;height:100%;object-fit:contain;display:block}}
 @media(prefers-reduced-motion:reduce){#flash.go{animation:none}}
@@ -66,12 +84,14 @@ label.t{display:block;color:var(--mute);font-size:.9rem;margin:16px 0 6px}
 <video id="v" playsinline muted></video>
 <div class="msg" id="msg">กด "เปิดกล้อง" แล้วอนุญาตให้เว็บใช้กล้อง</div>
 <div id="count"></div><div id="flash"></div>
+<div id="idle"><div><b id="idt"></b><span>แตะเพื่อเริ่มถ่าย</span></div></div>
 </div>
 <div id="dots"><i></i><i></i><i></i><i></i></div>
 <div class="row" style="justify-content:center">
 <button id="open">เปิดกล้อง</button>
 <button id="shoot" class="main" disabled>เริ่มถ่าย</button>
 <button id="fs">เต็มจอ</button>
+<button id="kiosk">โหมดตู้</button>
 </div>
 </div>
 <label class="t" for="cam">เลือกกล้อง (กล้อง Fuji ที่ต่อเป็นเว็บแคมจะอยู่ในลิสต์นี้)</label>
@@ -108,6 +128,7 @@ label.t{display:block;color:var(--mute);font-size:.9rem;margin:16px 0 6px}
 </details>
 </main>
 
+<div id="cornr"></div>
 <div id="pr"></div>
 <style id="pg"></style>
 <div id="ov" hidden>
@@ -200,7 +221,7 @@ function snap(){
 }
 function resetDots(){document.querySelectorAll('#dots i').forEach(i=>i.className='')}
 async function run(){
-  if(busy)return;busy=true;shots=[];$('shoot').disabled=true;$('dl').disabled=$('again').disabled=true;
+  if(busy)return;busy=true;document.body.classList.add('running');shots=[];$('shoot').disabled=true;$('dl').disabled=$('again').disabled=true;
   resetDots();draw();
   for(let n=0;n<4;n++){
     $('count').style.display='grid';
@@ -210,11 +231,32 @@ async function run(){
     shots.push(snap());document.querySelectorAll('#dots i')[n].className='on';draw();
     await wait(700);
   }
-  busy=false;$('shoot').disabled=false;$('dl').disabled=$('again').disabled=false;
+  busy=false;document.body.classList.remove('running');$('shoot').disabled=false;$('dl').disabled=$('again').disabled=false;
   finish();
 }
 $('shoot').onclick=run;
-function reset(){shots=[];resetDots();$('dl').disabled=$('again').disabled=true;$('ov').hidden=true;draw()}
+
+// kiosk mode: guest-facing flow (idle -> shoot -> result/QR -> idle)
+let rt=null,ct=0,taps=0;
+function setKiosk(on){
+  document.body.classList.toggle('kiosk',on);
+  $('idt').textContent=$('cap').value;
+  try{
+    if(on){const e=document.documentElement,f=e.requestFullscreen||e.webkitRequestFullscreen;if(f)f.call(e)}
+    else if(document.fullscreenElement)document.exitFullscreen();
+  }catch(x){}
+}
+$('kiosk').onclick=()=>{if(!stream){alert('เปิดกล้องก่อนเข้าโหมดตู้');return}setKiosk(true)};
+$('idle').onclick=run;
+$('cornr').onclick=()=>{taps++;clearTimeout(ct);ct=setTimeout(()=>{taps=0},2000);if(taps>=5){taps=0;setKiosk(false)}};
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&document.body.classList.contains('kiosk')){setKiosk(false);return}
+  if(e.code!=='Space'||/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName))return;
+  if(busy||!stream)return;
+  e.preventDefault();
+  if($('ov').hidden||document.body.classList.contains('kiosk'))run();else reset();
+});
+function reset(){clearTimeout(rt);shots=[];resetDots();$('dl').disabled=$('again').disabled=true;$('ov').hidden=true;draw()}
 $('again').onclick=reset;$('close').onclick=reset;
 
 // drawing helpers
