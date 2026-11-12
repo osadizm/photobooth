@@ -19,30 +19,83 @@ h1 span{color:#f2b632}
 .q img,.q canvas{max-width:100%;height:auto!important}
 .c p{margin:0;color:#bfaed6;font-size:.95rem}
 .e{text-align:center;color:#bfaed6;grid-column:1/-1;font-size:1.2rem}
+#s{text-align:center;color:#bfaed6;font-size:.85rem;margin:16px 0 0}
+#setup{max-width:420px;margin:20px auto;display:grid;gap:10px}
+#setup input,#setup button{font:inherit;padding:12px;border-radius:12px;border:2px solid #4a3563;background:#150d20;color:#fff6ea}
+#setup button{background:#e8472f;border:0;font-weight:600;cursor:pointer}
+[hidden]{display:none!important}
 </style>
 </head>
 <body>
 <h1>สแกน QR เพื่อ<span>เซฟรูปของคุณ</span></h1>
+<div id="setup" hidden>
+<p style="margin:0;color:#bfaed6;text-align:center">ยังไม่ได้ตั้งค่า ใส่ cloud name กับแท็กของงาน (หรือเปิดจากลิงก์ในหน้าตั้งค่าของ photobooth)</p>
+<input id="ic" placeholder="Cloudinary cloud name" autocomplete="off">
+<input id="it" placeholder="แท็กรูป" autocomplete="off">
+<button id="ib">เริ่มแสดง</button>
+</div>
 <div id="g"></div>
+<p id="s"></p>
 <script>
-const el=document.getElementById('g');
-function render(){
-  let a=[];try{a=JSON.parse(localStorage.getItem('pbq')||'[]')}catch(e){}
-  el.innerHTML='';
-  if(!a.length){el.innerHTML='<p class="e">ยังไม่มีรูป ถ่ายเสร็จแล้วรูปกับ QR จะขึ้นที่นี่</p>';return}
+const P=new URLSearchParams(location.search),g=document.getElementById('g'),st=document.getElementById('s');
+let C=P.get('c')||'',T=P.get('t')||'';
+try{
+  if(C){localStorage.setItem('pbc',C);localStorage.setItem('pbt',T||'photobooth')}
+  else{C=localStorage.getItem('pbc')||'';T=localStorage.getItem('pbt')||'photobooth'}
+}catch(e){}
+T=T||'photobooth';
+let remote=[],local=[],lastKey='';
+
+function readLocal(){try{local=JSON.parse(localStorage.getItem('pbq')||'[]')}catch(e){local=[]}}
+function items(){
+  const m=new Map();
+  remote.forEach(x=>m.set(x.o,{o:x.o,t:x.t,th:null}));
+  local.forEach(x=>{try{const o=new URL(x.u).searchParams.get('u');if(o)m.set(o,{o,t:Math.max(x.t,(m.get(o)||{}).t||0),th:x.th})}catch(e){}});
+  return [...m.values()].sort((a,b)=>b.t-a.t).slice(0,5);
+}
+function render(force){
+  const a=items(),key=a.map(x=>x.o).join('|');
+  if(!force&&key===lastKey)return;
+  lastKey=key;g.innerHTML='';
+  if(!a.length){g.innerHTML='<p class="e">ยังไม่มีรูป ถ่ายเสร็จแล้วรูปกับ QR จะขึ้นที่นี่</p>';return}
   a.forEach((o,i)=>{
     const d=document.createElement('div');d.className='c'+(i?'':' n');
-    const im=new Image();im.src=o.th;im.alt='';d.appendChild(im);
+    const im=new Image();im.alt='';
+    im.onerror=()=>{im.onerror=null;im.src=o.o};
+    im.src=o.th||o.o.replace('/image/upload/','/image/upload/c_limit,w_360,q_auto/');
+    d.appendChild(im);
     const q=document.createElement('div');q.className='q';d.appendChild(q);
     const t=document.createElement('p');
     t.textContent=(i?'':'ล่าสุด · ')+new Date(o.t).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
-    d.appendChild(t);el.appendChild(d);
-    if(window.QRCode)new QRCode(q,{text:o.u,width:176,height:176,correctLevel:QRCode.CorrectLevel.M});
+    d.appendChild(t);g.appendChild(d);
+    if(window.QRCode)new QRCode(q,{text:new URL('v.html?u='+encodeURIComponent(o.o),location.href).href,width:176,height:176,correctLevel:QRCode.CorrectLevel.M});
   });
 }
-render();
-if('BroadcastChannel' in window)new BroadcastChannel('pb').onmessage=render;
-window.addEventListener('storage',render);
+async function poll(){
+  if(!C)return;
+  try{
+    const r=await fetch('https://res.cloudinary.com/'+encodeURIComponent(C)+'/image/list/'+encodeURIComponent(T)+'.json?_='+Date.now());
+    if(r.status===401||r.status===403)throw new Error('ยังไม่ได้เปิดสิทธิ์ "Resource list" ในหน้า Security ของ Cloudinary');
+    if(r.status===404){remote=[];st.textContent='ยังไม่มีรูปที่ติดแท็กนี้ (หรือแท็กไม่ตรง)';render();return}
+    if(!r.ok)throw new Error('โหลดรายการรูปไม่ได้ ('+r.status+')');
+    const j=await r.json();
+    remote=(j.resources||[]).map(x=>({o:'https://res.cloudinary.com/'+C+'/image/upload/v'+x.version+'/'+x.public_id+'.'+x.format,t:x.version*1000}));
+    st.textContent='อัปเดตล่าสุด '+new Date().toLocaleTimeString('th-TH');
+  }catch(e){st.textContent=e.message||'เชื่อมต่อ Cloudinary ไม่ได้ ลองใหม่อัตโนมัติ'}
+  render();
+}
+if(!C){
+  document.getElementById('setup').hidden=false;
+  document.getElementById('ib').onclick=()=>{
+    const c=document.getElementById('ic').value.trim(),t=document.getElementById('it').value.trim()||'photobooth';
+    if(c)location.search='?c='+encodeURIComponent(c)+'&t='+encodeURIComponent(t);
+  };
+}
+readLocal();render(true);poll();
+setInterval(poll,5000);
+const sync=()=>{readLocal();render()};
+if('BroadcastChannel' in window)new BroadcastChannel('pb').onmessage=sync;
+window.addEventListener('storage',sync);
 </script>
 </body>
 </html>

@@ -144,6 +144,9 @@ body.kiosk:has(#ov:not([hidden])) .booth{margin-right:min(360px,40vw)}
 <summary>ตั้งค่าอัปโหลดรูปสำหรับ QR (สำหรับคนจัดงาน)</summary>
 <input type="text" id="cloud" placeholder="Cloudinary cloud name" autocomplete="off">
 <input type="text" id="preset" placeholder="Upload preset (แบบ unsigned)" autocomplete="off">
+<input type="text" id="tag" placeholder="แท็กรูปของงานนี้ (เช่น pb-7xk2q ตั้งให้เดายาก)" autocomplete="off">
+<p style="margin:8px 0 4px;font-size:.85rem">ลิงก์หน้า QR สำหรับเปิดบน notebook (บันทึกก่อน แล้วคัดลอกไปเปิดบนเครื่องนั้น):</p>
+<input type="text" id="bqlink" readonly onclick="this.select()">
 <button id="saveCfg">บันทึก</button>
 </details>
 </main>
@@ -429,16 +432,17 @@ async function doPrint(){
 $('pb').onclick=doPrint;$('pb2').onclick=doPrint;
 
 // upload + QR
-function cfg(){try{const s=JSON.parse(localStorage.getItem('pb')||'{}');return{cloud:s.cloud||CFG.cloud,preset:s.preset||CFG.preset}}catch(e){return CFG}}
-const c0=cfg();$('cloud').value=c0.cloud;$('preset').value=c0.preset;
-$('saveCfg').onclick=()=>{try{localStorage.setItem('pb',JSON.stringify({cloud:$('cloud').value.trim(),preset:$('preset').value.trim()}))}catch(e){}$('saveCfg').textContent='บันทึกแล้ว'};
+function cfg(){let s={};try{s=JSON.parse(localStorage.getItem('pb')||'{}')}catch(e){}return{cloud:s.cloud||CFG.cloud,preset:s.preset||CFG.preset,tag:s.tag||'photobooth'}}
+function bqUrl(){const c=cfg();return new URL('qr.html?c='+encodeURIComponent(c.cloud)+'&t='+encodeURIComponent(c.tag),location.href).href}
+const c0=cfg();$('cloud').value=c0.cloud;$('preset').value=c0.preset;$('tag').value=c0.tag;$('bqlink').value=bqUrl();
+$('saveCfg').onclick=()=>{try{localStorage.setItem('pb',JSON.stringify({cloud:$('cloud').value.trim(),preset:$('preset').value.trim(),tag:$('tag').value.trim()||'photobooth'}))}catch(e){}$('bqlink').value=bqUrl();$('saveCfg').textContent='บันทึกแล้ว'};
 async function upload(blob){
-  const {cloud,preset}=cfg();if(!cloud||!preset)throw new Error('nocfg');
+  const {cloud,preset,tag}=cfg();if(!cloud||!preset)throw new Error('nocfg');
   let err;
   for(let n=0;n<3;n++){
     const ac=new AbortController(),t=setTimeout(()=>ac.abort(),20000);
     try{
-      const fd=new FormData();fd.append('file',blob,'strip.jpg');fd.append('upload_preset',preset);
+      const fd=new FormData();fd.append('file',blob,'strip.jpg');fd.append('upload_preset',preset);fd.append('tags',tag);
       const r=await fetch('https://api.cloudinary.com/v1_1/'+encodeURIComponent(cloud)+'/image/upload',{method:'POST',body:fd,signal:ac.signal});
       const j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||'fail');
       return j.secure_url;
@@ -485,7 +489,7 @@ function pushBoard(vu){
   }catch(e){}
   if(BC)BC.postMessage('upd');
 }
-$('bq').onclick=()=>window.open('qr.html','pbqr','popup,width=1280,height=720');
+$('bq').onclick=()=>window.open(bqUrl(),'pbqr','popup,width=1280,height=720');
 
 draw();
 if(document.fonts)Promise.all([document.fonts.load('700 40px Mali'),document.fonts.load('800 40px Prompt'),document.fonts.load('400 26px Prompt')]).then(draw);
