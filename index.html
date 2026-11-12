@@ -9,280 +9,347 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mali:wght@600;700&family=Prompt:wght@400;600;800&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-:root{--bg:#2b1b3d;--panel:#3a2650;--panel2:#4a3563;--deep:#150d20;--ink:#fff6ea;--mute:#bfaed6;--red:#e8472f;--gold:#f2b632;--ok:#4cd28a;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-*,*::before,*::after{box-sizing:inherit}
+:root{--bg:#2b1b3d;--panel:#3a2650;--panel2:#4a3563;--deep:#150d20;--ink:#fff6ea;--mute:#bfaed6;--red:#e8472f;--gold:#f2b632;--ok:#4cd28a;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:'Prompt',system-ui,sans-serif;min-height:100vh}
 button,select,input{font:inherit;color:var(--ink)}
-button{border:0;border-radius:999px;padding:11px 20px;font-weight:600;cursor:pointer;background:var(--panel2);display:inline-flex;align-items:center;gap:8px;justify-content:center}
+button{border:0;border-radius:999px;padding:11px 20px;font-weight:600;cursor:pointer;background:var(--panel2);display:inline-flex;align-items:center;gap:8px;justify-content:center;touch-action:manipulation}
 button:hover:not(:disabled){filter:brightness(1.12)}
-button.main{background:var(--red);font-size:1.15rem;padding:14px 30px}
+button.main{background:var(--red);font-size:1.1rem;padding:13px 28px}
 button.ghost{background:transparent;border:2px solid var(--panel2)}
 button:disabled{opacity:.4;cursor:not-allowed}
-kbd{font:600 .75rem 'Prompt',sans-serif;background:rgba(0,0,0,.25);border-radius:6px;padding:2px 6px}
-select,input[type=text]{background:var(--deep);border:2px solid var(--panel2);border-radius:12px;padding:10px 12px;min-width:0;width:100%}
+kbd{font:600 .75rem 'Prompt',sans-serif;background:rgba(0,0,0,.3);border-radius:6px;padding:2px 6px}
+select,input[type=text],input[type=password]{background:var(--deep);border:2px solid var(--panel2);border-radius:12px;padding:10px 12px;min-width:0;width:100%}
 input[type=file]{width:100%;color:var(--mute);font-size:.9rem}
 input[type=file]::file-selector-button{font:inherit;font-weight:600;border:0;border-radius:999px;padding:8px 16px;margin-right:10px;background:var(--panel2);color:var(--ink);cursor:pointer}
 button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-within{outline:3px solid var(--gold);outline-offset:2px}
 
-/* top bar */
-.top{max-width:1400px;margin:0 auto;padding:16px 16px 0;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-h1{margin:0;font-weight:800;font-size:clamp(1.8rem,5vw,2.6rem);letter-spacing:-.02em;line-height:1;margin-right:auto}
+/* ---------- setup screen ---------- */
+.top{max-width:1500px;margin:0 auto;padding:14px 16px 0;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+h1{margin:0 auto 0 0;font-weight:800;font-size:clamp(1.7rem,4.5vw,2.4rem);letter-spacing:-.02em;line-height:1}
 h1 span{color:var(--gold)}
-.pills,.tools{display:flex;flex-wrap:wrap;gap:8px}
-.pill{padding:7px 14px;font-size:.85rem;font-weight:600;background:var(--deep);border:2px solid var(--panel2)}
+.pills,.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pill{padding:7px 14px;font-size:.85rem;background:var(--deep);border:2px solid var(--panel2)}
 .pill::before{content:'';width:9px;height:9px;border-radius:50%;background:var(--red)}
 .pill.ok::before{background:var(--ok)}
-.tools button{padding:8px 14px;font-size:.9rem}
-
-main{max-width:1400px;margin:0 auto;padding:16px 16px 24px;display:grid;gap:20px;grid-template-columns:1fr}
-@media(min-width:900px){main{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:start}}
-@media(min-width:1240px){main{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}.right{display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px;align-items:start}}
-
-/* booth */
-.booth{background:var(--panel);border-radius:24px;padding:14px;border:3px solid var(--gold)}
-.screen{position:relative;aspect-ratio:4/3;background:var(--deep);border-radius:16px;overflow:hidden}
-video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
-.msg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--mute);cursor:pointer;font-size:1.05rem}
-.msg b{display:block;font-size:3.5rem;margin-bottom:6px}
-#count{position:absolute;inset:0;display:none;place-items:center;font-size:clamp(6rem,24vw,12rem);font-weight:800;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.6)}
-#shotN{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);padding:6px 18px;border-radius:999px;font-weight:600;font-size:clamp(1rem,2.4vw,1.4rem);z-index:2}
-#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
-#flash.go{animation:fl .35s ease-out}
-@keyframes fl{from{opacity:.95}to{opacity:0}}
-#dots{display:flex;gap:8px;justify-content:center;margin:12px 0 4px}
-#dots i{width:12px;height:12px;border-radius:50%;background:var(--deep);border:2px solid var(--gold);transition:background .2s}
-#dots i.on{background:var(--gold)}
-.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;justify-content:center;align-items:center}
-
-/* panels */
-.panel{background:var(--panel);border-radius:20px;padding:6px 16px 16px;margin-top:16px}
-.right .panel{margin-top:0}
-@media(max-width:1239px){.right .panel{margin-top:16px}}
+.pill.warn::before{background:var(--gold)}
+main{max-width:1500px;margin:0 auto;padding:16px;display:grid;gap:20px;grid-template-columns:minmax(0,1fr);grid-template-areas:"cam" "prev" "set"}
+@media(min-width:900px){main{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"cam prev" "set prev"}}
+@media(min-width:1280px){main{grid-template-columns:minmax(0,1fr) auto minmax(340px,1fr);grid-template-areas:"cam prev set"}}
+.cam{grid-area:cam}.prev{grid-area:prev}.set{grid-area:set}
+.card{background:var(--panel);border-radius:22px;padding:14px}
+.screen{position:relative;aspect-ratio:4/3;background:var(--deep);border-radius:14px;overflow:hidden}
+#v{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
+.msg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--mute);cursor:pointer}
+.msg b{display:block;font-size:3.2rem;margin-bottom:6px}
+.check{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:8px}
+.check li{display:flex;gap:10px;align-items:center;background:var(--deep);border-radius:12px;padding:10px 12px;font-size:.95rem}
+.check li::before{content:'';flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--panel2)}
+.check li.ok::before{content:'✓';background:var(--ok);border-color:var(--ok);color:#10301f;font-weight:800;display:grid;place-items:center;font-size:.8rem}
+.check li small{color:var(--mute);display:block}
+.check li button{margin-left:auto;padding:6px 14px;font-size:.85rem}
+.big-go{width:100%;margin-top:14px;font-size:1.3rem;padding:16px}
+.note{color:var(--mute);font-size:.85rem;margin:8px 0 0}
+.prev{display:flex;flex-direction:column;align-items:center}
+#ed{max-width:100%;max-height:80vh;width:auto;height:auto;border-radius:4px;box-shadow:0 14px 40px rgba(0,0,0,.45);background:#fff;touch-action:none}
+@media(max-width:899px){#ed{max-height:none;width:min(80%,320px)}}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--deep);padding:4px;border-radius:16px}
+.tabs button{padding:9px 4px;font-size:.88rem;background:transparent;color:var(--mute);white-space:nowrap;border-radius:12px}
+.tabs button[aria-selected=true]{background:var(--gold);color:#2b1b3d}
+.tp{padding:0 2px}
 label.t{display:block;color:var(--mute);font-size:.9rem;margin:14px 0 6px}
-.grid2{display:grid;grid-template-columns:2fr 1fr;gap:12px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{position:relative}
 .chip input{position:absolute;opacity:0;inset:0;cursor:pointer}
-.chip span{display:block;padding:8px 16px;border-radius:999px;background:var(--panel2);pointer-events:none}
+.chip span{display:block;padding:8px 15px;border-radius:999px;background:var(--panel2);pointer-events:none}
 .chip input:checked+span{background:var(--gold);color:#2b1b3d;font-weight:600}
-.tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:4px;margin:10px 0 4px;background:var(--deep);padding:4px;border-radius:16px}
-.tabs button{padding:9px 6px;font-size:.88rem;background:transparent;color:var(--mute);white-space:nowrap;border-radius:12px}
-.tabs button[aria-selected=true]{background:var(--gold);color:#2b1b3d}
 .row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
 .row label{color:var(--mute);font-size:.9rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .sb{padding:6px 10px;font-size:1.4rem;border-radius:12px;line-height:1.2}
 input[type=color]{width:44px;height:32px;border:0;padding:0;background:none;vertical-align:middle}
-.chk{display:flex;gap:10px;align-items:flex-start;color:var(--ink);font-size:.95rem;margin:14px 0 0;cursor:pointer}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:.95rem;margin:14px 0 0;cursor:pointer}
 .chk input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--gold);flex:none}
 .chk small{display:block;color:var(--mute)}
-.note{color:var(--mute);font-size:.85rem;margin:6px 0 0}
-
-/* strip */
-.stripwrap{display:flex;flex-direction:column;align-items:center}
-#strip{max-width:100%;max-height:72vh;width:auto;height:auto;border-radius:4px;box-shadow:0 14px 40px rgba(0,0,0,.45);background:#fff}
-@media(max-width:899px){#strip{max-height:none;width:min(70%,260px)}}
-.stripwrap .actions{margin-top:14px}
-.keys{text-align:center;color:var(--mute);font-size:.85rem;margin:0 0 24px}
-
-/* result overlay */
-#ov{position:fixed;inset:0;background:rgba(15,8,25,.92);display:grid;place-items:center;padding:16px;z-index:9;overflow:auto}
-.card{background:var(--panel);border:3px solid var(--gold);border-radius:28px;padding:24px;max-width:460px;width:100%;text-align:center}
-.card h2{margin:0 0 14px;font-size:1.6rem}
-#ovStrip{display:block;margin:0 auto 14px;max-height:34vh;max-width:100%;border-radius:4px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
-#qrbox{background:#fff;padding:16px;border-radius:16px;display:none;margin:0 auto;line-height:0}
-#st{margin:14px 0 0;color:var(--mute)}
-#ovTimer{margin:6px 0 0;color:var(--mute);font-size:.85rem}
-.card .actions{margin-top:16px}
-
-/* settings dialog */
-dialog{background:var(--panel);color:var(--ink);border:3px solid var(--gold);border-radius:24px;padding:22px;max-width:520px;width:calc(100% - 32px)}
-dialog::backdrop{background:rgba(15,8,25,.8)}
-dialog h2{margin:0 0 4px}
-dialog ol{color:var(--mute);font-size:.88rem;padding-left:20px;margin:8px 0}
-dialog .actions{justify-content:flex-end}
-
-/* toast */
-#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#1b1129;border:2px solid var(--gold);padding:12px 20px;border-radius:14px;z-index:30;opacity:0;pointer-events:none;transition:.25s;max-width:min(92vw,520px);text-align:center}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin-top:12px}
+.gal img{width:100%;aspect-ratio:1/2;object-fit:cover;object-position:top;border-radius:6px;cursor:pointer;background:#fff}
+.gal img.pend{outline:3px solid var(--gold)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#1b1129;border:2px solid var(--gold);padding:12px 20px;border-radius:14px;z-index:90;opacity:0;pointer-events:none;transition:.25s;max-width:min(92vw,520px);text-align:center}
 #toast.on{opacity:1;transform:translateX(-50%)}
 
-/* kiosk (guest-facing) */
-#idle{display:none;position:absolute;inset:0;z-index:3;background:rgba(21,13,32,.55);place-items:center;text-align:center;cursor:pointer;padding:20px}
-#idle b{display:block;font-size:clamp(2rem,8vw,4.5rem);font-weight:800;line-height:1.1}
-#idle span{display:inline-block;margin-top:18px;background:var(--red);padding:16px 36px;border-radius:999px;font-size:clamp(1.2rem,4vw,2rem);font-weight:600;animation:pulse 1.8s ease-in-out infinite}
-@keyframes pulse{50%{transform:scale(1.06)}}
-#cornr{display:none;position:fixed;top:8px;left:8px;z-index:20;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff;font-size:.85rem;opacity:.6;user-select:none;touch-action:none;cursor:pointer}
-body.kiosk{background:var(--deep)}
-body.kiosk .top,body.kiosk .right,body.kiosk .left>.panel,body.kiosk .keys,body.kiosk .booth .actions{display:none}
-body.kiosk main{max-width:none;padding:0;display:block}
-body.kiosk .booth{border:0;border-radius:0;height:100vh;display:flex;flex-direction:column;padding:0}
-body.kiosk .screen{flex:1;aspect-ratio:auto;border-radius:0}
-body.kiosk #dots{margin:10px 0}
-body.kiosk:not(.running) #idle{display:grid}
-body.kiosk #cornr{display:block}
-body.kiosk #ov{inset:0 0 0 auto;width:min(380px,40vw);background:#1b1129;padding:12px;border-left:3px solid var(--gold)}
-body.kiosk #ov .card{border:0;padding:12px;background:transparent}
-body.kiosk #ov .card h2{font-size:1.3rem}
-body.kiosk #qrbox img,body.kiosk #qrbox canvas{max-width:100%;height:auto!important}
-body.kiosk #close,body.kiosk #dl2{display:none}
-body.kiosk:has(#ov:not([hidden])) .booth{margin-right:min(380px,40vw)}
+/* ---------- guest stage (kiosk / test) ---------- */
+#stage{position:fixed;inset:0;z-index:50;background:#000;color:#fff;overflow:hidden;user-select:none;-webkit-user-select:none}
+#stage.nocur,#stage.nocur *{cursor:none!important}
+#sv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.scr{position:absolute;inset:0;display:none}
+#stage[data-s=attract] [data-for=attract],#stage[data-s=choose] [data-for=choose],#stage[data-s=shoot] [data-for=shoot],
+#stage[data-s=review] [data-for=review],#stage[data-s=done] [data-for=done],#stage[data-s=thanks] [data-for=thanks]{display:grid}
+#stage[data-s=review] #sv,#stage[data-s=done] #sv,#stage[data-s=thanks] #sv{filter:blur(18px) brightness(.45)!important}
+.sbtn{font-size:clamp(1.1rem,2.6vw,1.6rem);padding:16px 34px}
+.sbtn.main{font-size:clamp(1.3rem,3.2vw,2rem);padding:18px 44px}
+[data-for=attract]{place-items:end center;padding:0 24px 9vh;text-align:center;cursor:pointer;background:linear-gradient(to top,rgba(21,13,32,.85),rgba(21,13,32,0) 65%)}
+[data-for=attract] h2{margin:0;font-size:clamp(2.4rem,9vw,6rem);font-weight:800;line-height:1.05;text-shadow:0 4px 30px rgba(0,0,0,.5)}
+[data-for=attract] p{margin:10px 0 22px;font-size:clamp(1rem,2.4vw,1.5rem);opacity:.85}
+[data-for=attract] .sbtn{animation:pulse 1.8s ease-in-out infinite;pointer-events:none}
+@keyframes pulse{50%{transform:scale(1.07)}}
+[data-for=choose]{align-content:end;justify-items:center;padding:0 16px 5vh;background:linear-gradient(to top,rgba(21,13,32,.92),rgba(21,13,32,0) 60%)}
+[data-for=choose] h2,[data-for=review] h2,[data-for=done] h2{margin:0 0 14px;font-size:clamp(1.5rem,3.6vw,2.4rem);text-align:center}
+.fgrid{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:22px}
+.fc{flex-direction:column;padding:8px;border-radius:20px;background:rgba(255,255,255,.12);border:4px solid transparent;width:clamp(120px,18vw,200px);font-size:1.1rem}
+.fc.on{border-color:var(--gold);background:rgba(242,182,50,.25)}
+.fc video{width:100%;aspect-ratio:4/3;object-fit:cover;transform:scaleX(-1);border-radius:12px;display:block;pointer-events:none}
+.srow{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:center}
+[data-for=shoot]{place-items:center;pointer-events:none}
+#shotN{position:absolute;top:22px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);padding:8px 24px;border-radius:999px;font-weight:600;font-size:clamp(1.1rem,2.8vw,1.7rem);white-space:nowrap}
+#count{font-size:clamp(7rem,30vw,16rem);font-weight:800;text-shadow:0 6px 40px rgba(0,0,0,.6);line-height:1}
+#count.word{font-size:clamp(3rem,12vw,7rem)}
+#count.pop{animation:pop .9s ease-out}
+@keyframes pop{from{transform:scale(1.5);opacity:0}25%{transform:scale(1);opacity:1}}
+#freeze{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;display:none}
+#freeze.on{display:block}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:5}
+#flash.go{animation:fl .4s ease-out}
+@keyframes fl{from{opacity:1}to{opacity:0}}
+#thumbs{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:10px}
+#thumbs i{width:clamp(56px,9vw,96px);aspect-ratio:4/3;border-radius:10px;border:3px solid rgba(255,255,255,.8);background:rgba(0,0,0,.4) center/cover no-repeat}
+[data-for=review],[data-for=done]{grid-template-columns:auto minmax(0,440px);gap:clamp(20px,4vw,60px);place-content:center;align-items:center;padding:24px}
+@media(orientation:portrait){[data-for=review],[data-for=done]{grid-template-columns:1fr;justify-items:center;align-content:center}}
+.outimg{max-height:86vh;max-width:min(90vw,700px);border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,.6);background:#fff}
+@media(orientation:portrait){.outimg{max-height:52vh}}
+.spanel{text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
+.spanel p{margin:0;color:var(--mute);font-size:1.05rem}
+#dqr{background:#fff;padding:14px;border-radius:18px;line-height:0;min-width:200px;min-height:200px;display:grid;place-items:center}
+#dqr img,#dqr canvas{max-width:min(240px,40vh);height:auto!important}
+.spin{width:54px;height:54px;border-radius:50%;border:6px solid #ddd;border-top-color:var(--red);animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.tmr{font-size:.9rem;color:var(--mute);min-height:1.2em}
+[data-for=thanks]{place-items:center;text-align:center}
+[data-for=thanks] b{display:block;font-size:clamp(3rem,12vw,8rem);font-weight:800}
+[data-for=thanks] span{font-size:clamp(1.1rem,3vw,1.8rem);color:var(--mute)}
+#sx{position:absolute;top:14px;right:14px;z-index:20;background:rgba(0,0,0,.55)}
+#hot{position:absolute;top:0;left:0;width:90px;height:90px;z-index:20;display:grid;place-items:center;touch-action:none;-webkit-touch-callout:none}
+#hot::after{content:'';width:46px;height:46px;border-radius:50%;border:3px solid transparent;background:conic-gradient(var(--gold) var(--p,0%),transparent 0)}
+#hot.hold{animation:hp 1.5s linear forwards}
+#hot.hold::after{border-color:rgba(255,255,255,.4)}
+@property --p{syntax:'<percentage>';inherits:false;initial-value:0%}
+@keyframes hp{to{--p:100%}}
+#staff{position:absolute;inset:0;z-index:30;background:rgba(10,5,18,.85);display:grid;place-items:center;padding:16px}
+#staff .card{max-width:400px;width:100%;border:3px solid var(--gold);display:grid;gap:10px;text-align:center}
+#staff h3{margin:0 0 4px;font-size:1.4rem}
+#staff p{margin:0;color:var(--mute)}
+#pinIn{text-align:center;font-size:1.6rem;letter-spacing:.4em}
+
 #pr{display:none}
-@media print{body{background:#fff}:root{padding:0}body>*:not(#pr){display:none!important}#pr{display:flex;width:100%;height:100vh}#pr img{flex:1;min-width:0;height:100%;object-fit:contain;display:block}}
-@media(prefers-reduced-motion:reduce){#flash.go,#idle span{animation:none}}
+@media print{body{background:#fff}body>*:not(#pr){display:none!important}#pr{display:flex;width:100%;height:100vh}#pr img{flex:1;min-width:0;height:100%;object-fit:contain;display:block}}
+@media(prefers-reduced-motion:reduce){#flash.go,[data-for=attract] .sbtn,#count.pop{animation:none}}
 </style>
 </head>
 <body>
+
 <header class="top">
 <h1>Photo<span>booth</span></h1>
 <div class="pills">
-<button class="pill" id="stCam" title="สถานะกล้อง">กล้อง: ยังไม่เปิด</button>
-<button class="pill" id="stUp" title="สถานะการอัปโหลดสำหรับ QR">QR: ยังไม่ตั้งค่า</button>
+<button class="pill" id="stCam">กล้อง: ยังไม่เปิด</button>
+<button class="pill" id="stUp">QR: ยังไม่ตั้งค่า</button>
+<button class="pill warn" id="stPr">ปริ้น: ปิด</button>
 </div>
 <div class="tools">
 <button id="fs" class="ghost">⛶ เต็มจอ</button>
-<button id="bq" class="ghost" title="เปิดหน้ารวม QR สำหรับจอที่สอง">🔳 หน้า QR</button>
-<button id="gear" class="ghost">⚙️ ตั้งค่า</button>
+<button id="bq" class="ghost" title="เปิดหน้ารวม QR สำหรับจอที่สอง">🔳 หน้า QR จอที่สอง</button>
 </div>
 </header>
 
 <main>
-<section class="left">
-<div class="booth">
+<section class="cam card">
 <div class="screen">
 <video id="v" playsinline muted></video>
-<div class="msg" id="msg" role="button" tabindex="0"><div><b>📷</b>แตะที่นี่เพื่อเปิดกล้อง<br><small>แล้วกด "อนุญาต" เมื่อเบราว์เซอร์ถาม</small></div></div>
-<div id="shotN" hidden></div>
-<div id="count"></div><div id="flash"></div>
-<div id="idle"><div><b id="idt"></b><span>แตะเพื่อเริ่มถ่าย</span></div></div>
+<div id="msg" class="msg" role="button" tabindex="0"><div><b>📷</b>แตะที่นี่เพื่อเปิดกล้อง<br><small>แล้วกด "อนุญาต" เมื่อเบราว์เซอร์ถาม</small></div></div>
 </div>
-<div id="dots"><i></i><i></i><i></i><i></i></div>
-<div class="actions">
-<button id="open" class="main">📷 เปิดกล้อง</button>
-<button id="shoot" class="main" disabled>● เริ่มถ่าย 4 รูป <kbd>Space</kbd></button>
-<button id="kiosk" title="เต็มจอสำหรับให้แขกกดถ่ายเอง">🖥 โหมดตู้</button>
-</div>
-</div>
-<div class="panel">
-<div class="grid2">
-<div><label class="t" for="cam">กล้อง <small>(กล้อง Fuji ที่ต่อเป็นเว็บแคมจะอยู่ในลิสต์นี้)</small></label>
-<select id="cam"><option>ยังไม่ได้เปิดกล้อง</option></select></div>
-<div><label class="t" for="cd">นับถอยหลัง</label>
-<select id="cd"><option value="3">3 วินาที</option><option value="5">5 วินาที</option><option value="10">10 วินาที</option></select></div>
-</div>
-<label class="t">ฟิลเตอร์</label>
-<div class="chips" id="filters"></div>
-</div>
+<ul class="check">
+<li id="ck1">เปิดกล้อง<button id="open">เปิดกล้อง</button></li>
+<li id="ck2"><span>ตั้งค่า QR ให้แขกสแกนเอารูป<small>ไม่บังคับ ถ้าไม่ตั้ง รูปจะเก็บไว้ในเครื่อง</small></span><button data-goto="share">ตั้งค่า</button></li>
+<li id="ck3">ลองถ่ายทดสอบ 1 ชุด<button id="test" disabled>ลองถ่าย</button></li>
+</ul>
+<button id="go" class="main big-go" disabled>▶ เริ่มโหมดตู้ (ให้แขกใช้)</button>
+<p class="note">ออกจากโหมดตู้: แตะมุมซ้ายบนของจอ 5 ครั้งติดกัน หรือกดค้างที่มุมนั้น 1.5 วินาที หรือกด <kbd>Esc</kbd></p>
 </section>
 
-<section class="right">
-<div class="stripwrap">
-<canvas id="strip" width="640" height="1960" aria-label="ตัวอย่างแถบรูป"></canvas>
-<div class="actions">
-<button id="dl" disabled>⬇ ดาวน์โหลด</button>
-<button id="pb">🖨 ปริ้น</button>
-<button id="again" disabled>↺ ถ่ายใหม่</button>
-</div>
-</div>
+<section class="prev">
+<canvas id="ed" width="640" height="1960" aria-label="ตัวอย่างดีไซน์"></canvas>
+<p class="note">ตัวอย่างดีไซน์ · แตะสติกเกอร์แล้วลากเพื่อย้าย</p>
+</section>
 
-<div class="panel">
+<section class="set card">
 <div class="tabs" role="tablist">
-<button role="tab" data-tab="theme" aria-selected="true">🎨 ธีม</button>
-<button role="tab" data-tab="text" aria-selected="false">✏️ ข้อความ</button>
+<button role="tab" data-tab="design" aria-selected="true">🎨 ดีไซน์</button>
 <button role="tab" data-tab="stk" aria-selected="false">⭐ สติกเกอร์</button>
-<button role="tab" data-tab="print" aria-selected="false">🖨 ปริ้น</button>
+<button role="tab" data-tab="camera" aria-selected="false">📷 กล้อง</button>
+<button role="tab" data-tab="share" aria-selected="false">🖨 ปริ้น/QR</button>
+<button role="tab" data-tab="kiosk" aria-selected="false">🖥 ตู้</button>
+<button role="tab" data-tab="gallery" aria-selected="false">🗂 คลังรูป</button>
 </div>
 
-<div class="tp" data-p="theme">
-<label class="t">เลือกธีมงาน</label>
+<div class="tp" data-p="design">
+<label class="t">รูปแบบ</label>
+<div class="chips" id="layouts"></div>
+<label class="t">ธีม</label>
 <div class="chips" id="themes"></div>
 <div id="cust" class="row" hidden>
-<label>สีพื้น <input type="color" id="cbg" value="#ffd1dc"></label>
-<label>สีตัวอักษรและกรอบ <input type="color" id="cink" value="#3b2a6b"></label>
+<label>สีพื้น <input type="color" data-k="cbg"></label>
+<label>สีตัวอักษรและกรอบ <input type="color" data-k="cink"></label>
 <label style="width:100%">รูปพื้นหลัง (ไม่ใส่ก็ได้) <input type="file" id="cimg" accept="image/*"></label>
+<button id="cimgClr" hidden>ลบรูปพื้นหลัง</button>
 </div>
-</div>
-
-<div class="tp" data-p="text" hidden>
-<label class="t" for="cap">ข้อความท้ายแถบ</label>
+<label class="t" for="cap">ข้อความ (แสดงบนรูปและหน้าแรกของตู้)</label>
 <input type="text" id="cap" maxlength="28">
-<p class="note">ข้อความนี้ใช้เป็นหัวข้อตัวใหญ่ในหน้าเริ่มของโหมดตู้ด้วย</p>
-<label class="t" for="logo">โลโก้ของงาน (PNG พื้นใส วางท้ายแถบ)</label>
+<label class="t" for="logo">โลโก้งาน (PNG พื้นใส)</label>
 <input type="file" id="logo" accept="image/*">
 <div class="row"><button id="logoClr" hidden>ลบโลโก้</button></div>
 </div>
 
 <div class="tp" data-p="stk" hidden>
-<label class="t">แตะเพื่อเพิ่ม แล้วลากบนแถบรูปเพื่อย้าย</label>
+<label class="t">แตะเพื่อเพิ่ม แล้วลากบนตัวอย่างเพื่อย้าย</label>
 <div class="chips" id="stk"></div>
-<label class="t" for="simg">อัปโหลดสติกเกอร์ของตัวเอง (PNG พื้นใสจะสวยสุด)</label>
+<label class="t" for="simg">อัปโหลดสติกเกอร์ของตัวเอง (PNG พื้นใส)</label>
 <input type="file" id="simg" accept="image/*">
 <div id="sctl" class="row" hidden>
-<label>ขนาด <input type="range" id="ssz" min="30" max="400" value="120"></label>
+<label>ขนาด <input type="range" id="ssz" min="5" max="70" value="19"></label>
 <label>หมุน <input type="range" id="srt" min="-180" max="180" value="0"></label>
 <button id="sdel">ลบอันนี้</button>
 </div>
 <div class="row"><button id="sclr">ล้างสติกเกอร์ทั้งหมด</button></div>
 </div>
 
-<div class="tp" data-p="print" hidden>
-<label class="t" for="pm">ขนาดกระดาษ</label>
-<select id="pm"><option value="2">4x6 นิ้ว (2 แถบ ตัดครึ่ง)</option><option value="1">2x6 นิ้ว (แถบเดียว)</option></select>
-<label class="chk"><input type="checkbox" id="ap"><span>ปริ้นอัตโนมัติหลังถ่ายครบ 4 รูป</span></label>
-<label class="chk"><input type="checkbox" id="nq"><span>ซ่อนแถบ QR ข้างจอในโหมดตู้<small>ใช้เมื่อเปิด "หน้า QR" บนจอที่สองแทน</small></span></label>
+<div class="tp" data-p="camera" hidden>
+<label class="t" for="cam">กล้อง (กล้อง Fuji ที่ต่อเป็นเว็บแคมจะอยู่ในลิสต์นี้)</label>
+<select id="cam"><option>ยังไม่ได้เปิดกล้อง</option></select>
+<label class="t">ฟิลเตอร์เริ่มต้น</label>
+<div class="chips" id="filters"></div>
+<label class="t" for="cd">นับถอยหลังต่อรูป</label>
+<select id="cd" data-k="cd"><option value="3">3 วินาที</option><option value="5">5 วินาที</option><option value="10">10 วินาที</option></select>
+<label class="chk"><input type="checkbox" data-k="mirror"><span>กลับด้านรูปเหมือนกระจก<small>ปิดไว้ถ้าอยากให้ตัวหนังสือบนป้าย/เสื้ออ่านถูกด้าน</small></span></label>
+<label class="chk"><input type="checkbox" data-k="sound"><span>เสียงนับถอยหลังและเสียงชัตเตอร์</span></label>
 </div>
+
+<div class="tp" data-p="share" hidden>
+<label class="t" for="printMode">การปริ้น</label>
+<select id="printMode" data-k="printMode"><option value="off">ไม่ปริ้น</option><option value="guest">ให้แขกกดปุ่มปริ้นเอง (1 ครั้งต่อชุด)</option><option value="auto">ปริ้นอัตโนมัติทุกชุด</option></select>
+<label class="t" for="pm">กระดาษ (สำหรับรูปแบบแถบ)</label>
+<select id="pm" data-k="pm"><option value="2">4x6 นิ้ว (2 แถบ ตัดครึ่ง)</option><option value="1">2x6 นิ้ว (แถบเดียว)</option></select>
+<p class="note">รูปแบบตารางและรูปเดี่ยวจะปริ้นเต็มกระดาษ 4x6 · อยากให้ปริ้นทันทีโดยไม่มีหน้าต่างถาม ให้เปิด Chrome ด้วย <kbd>--kiosk-printing</kbd></p>
+<div class="row"><button id="pTest">ปริ้นทดสอบ</button></div>
+<label class="t" for="cloud">Cloudinary cloud name</label>
+<input type="text" id="cloud" autocomplete="off">
+<label class="t" for="preset">Upload preset (แบบ Unsigned)</label>
+<input type="text" id="preset" autocomplete="off">
+<label class="t" for="tag">แท็กรูปของงาน (ตั้งให้เดายาก เช่น pb-7xk2q)</label>
+<input type="text" id="tag" autocomplete="off">
+<div class="row"><button id="saveCfg" class="main">บันทึกการตั้งค่า QR</button></div>
+<label class="t" for="bqlink">ลิงก์หน้า QR สำหรับจอที่สอง (แตะเพื่อคัดลอก)</label>
+<input type="text" id="bqlink" readonly>
+<p class="note">หน้า QR บนเครื่องอื่นต้องเปิด "Resource list" ในหน้า Security ของ Cloudinary</p>
+</div>
+
+<div class="tp" data-p="kiosk" hidden>
+<label class="chk"><input type="checkbox" data-k="guestFilter"><span>ให้แขกเลือกฟิลเตอร์ก่อนถ่าย</span></label>
+<label class="chk"><input type="checkbox" data-k="retake"><span>ให้แขกดูรูปก่อน และกดถ่ายใหม่ได้ 1 ครั้ง</span></label>
+<label class="chk"><input type="checkbox" data-k="showQR"><span>แสดง QR บนจอตู้<small>ปิดไว้ถ้าใช้หน้า QR บนจอที่สองแทน</small></span></label>
+<label class="t" for="back">กลับหน้าแรกอัตโนมัติหลังถ่ายเสร็จ</label>
+<select id="back" data-k="back"><option value="30">30 วินาที</option><option value="60">60 วินาที</option><option value="90">90 วินาที</option><option value="180">3 นาที</option></select>
+<label class="t" for="pin">PIN สำหรับออกจากโหมดตู้ (ไม่ใส่ก็ได้)</label>
+<input type="password" id="pin" data-k="pin" inputmode="numeric" maxlength="6" autocomplete="off">
+<p class="note">วิธีออก: แตะมุมซ้ายบน 5 ครั้งติดกัน หรือกดค้างที่มุมนั้น หรือกด Esc → จะมีเมนูเจ้าหน้าที่ให้ปริ้นซ้ำหรือออกจากโหมดตู้</p>
+</div>
+
+<div class="tp" data-p="gallery" hidden>
+<p id="gInfo" class="note">กำลังโหลด...</p>
+<div class="row">
+<button id="gZip">⬇ ดาวน์โหลดทั้งหมด (.zip)</button>
+<button id="gUp" hidden>☁ อัปโหลดรูปที่ค้าง</button>
+<button id="gClr" class="ghost">ลบทั้งหมด</button>
+</div>
+<div class="gal" id="gal"></div>
+<p class="note">ทุกชุดที่ถ่ายจะเก็บไว้ในเบราว์เซอร์เครื่องนี้ด้วย กันกรณีเน็ตล่ม (กรอบสีทอง = ยังไม่ได้อัปโหลด) · แตะรูปเพื่อดาวน์โหลด</p>
 </div>
 </section>
 </main>
-<p class="keys">ทางลัด: <kbd>Space</kbd> ถ่าย / ถ่ายชุดใหม่ · <kbd>Esc</kbd> ออกจากโหมดตู้</p>
 
-<dialog id="setDlg">
-<h2>ตั้งค่าอัปโหลดรูปสำหรับ QR</h2>
-<ol>
-<li>สมัคร Cloudinary แล้วสร้าง Upload preset แบบ <b>Unsigned</b></li>
-<li>ถ้าจะใช้หน้า QR บนจอที่สอง ให้เปิด "Resource list" ในหน้า Security</li>
-</ol>
-<label class="t" for="cloud">Cloud name</label>
-<input type="text" id="cloud" autocomplete="off">
-<label class="t" for="preset">Upload preset (Unsigned)</label>
-<input type="text" id="preset" autocomplete="off">
-<label class="t" for="tag">แท็กรูปของงานนี้ (ตั้งให้เดายาก เช่น pb-7xk2q)</label>
-<input type="text" id="tag" autocomplete="off">
-<label class="t" for="bqlink">ลิงก์หน้า QR สำหรับเปิดบนเครื่องอื่น (แตะเพื่อคัดลอก)</label>
-<input type="text" id="bqlink" readonly>
-<div class="actions">
-<button id="cfgClose" class="ghost">ปิด</button>
-<button id="saveCfg" class="main">บันทึก</button>
+<!-- guest-facing stage: used by kiosk mode and test shots -->
+<div id="stage" hidden data-s="attract">
+<video id="sv" playsinline muted></video>
+
+<div class="scr" data-for="attract" id="sA">
+<div><h2 id="aT"></h2><p id="aS"></p><button class="main sbtn">📸 แตะเพื่อเริ่มถ่าย</button></div>
 </div>
-</dialog>
 
-<div id="cornr">ออกจากโหมดตู้ (กดค้าง)</div>
+<div class="scr" data-for="choose">
+<h2>เลือกโทนสีที่ชอบ</h2>
+<div class="fgrid" id="fgrid"></div>
+<div class="srow"><button class="sbtn ghost" id="cBack">← ย้อนกลับ</button><button class="main sbtn" id="cGo">เริ่มถ่ายเลย ▶</button></div>
+</div>
+
+<div class="scr" data-for="shoot">
+<div id="shotN"></div>
+<img id="freeze" alt="">
+<div id="count"></div>
+<div id="thumbs"></div>
+</div>
+
+<div class="scr" data-for="review">
+<img class="outimg" id="rImg" alt="รูปที่เพิ่งถ่าย">
+<div class="spanel">
+<h2>ชอบชุดนี้ไหม?</h2>
+<button class="main sbtn" id="rOk">✓ ใช้ชุดนี้</button>
+<button class="sbtn" id="rAgain">↺ ถ่ายใหม่อีกครั้ง</button>
+<p class="tmr" id="rT"></p>
+</div>
+</div>
+
+<div class="scr" data-for="done">
+<img class="outimg" id="dImg" alt="รูปของคุณ">
+<div class="spanel">
+<h2 id="dH">สแกนเพื่อเซฟรูป</h2>
+<div id="dqr"></div>
+<p id="dSt"></p>
+<div class="srow">
+<button class="sbtn" id="dRetry" hidden>ลองส่งอีกครั้ง</button>
+<button class="sbtn" id="dPrint" hidden>🖨 ปริ้นรูป</button>
+<button class="main sbtn" id="dFin">เสร็จแล้ว ✓</button>
+</div>
+<p class="tmr" id="dT"></p>
+</div>
+</div>
+
+<div class="scr" data-for="thanks"><div><b>ขอบคุณ! 💖</b><span>แล้วมาถ่ายกันใหม่นะ</span></div></div>
+
+<div id="flash"></div>
+<button id="sx" hidden>✕ ปิดโหมดทดสอบ</button>
+<div id="hot" hidden aria-hidden="true"></div>
+<div id="staff" hidden>
+<div class="card">
+<h3>เมนูเจ้าหน้าที่</h3>
+<p id="stCount"></p>
+<input type="password" id="pinIn" inputmode="numeric" maxlength="6" placeholder="PIN" autocomplete="off" hidden>
+<button id="stReprint">🖨 ปริ้นชุดล่าสุดอีกครั้ง</button>
+<button id="stExit" class="main">ออกจากโหมดตู้</button>
+<button id="stClose" class="ghost">กลับไปหน้าตู้</button>
+</div>
+</div>
+</div>
+
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="pr"></div>
 <style id="pg"></style>
-<div id="ov" hidden>
-<div class="card">
-<h2>สแกนเพื่อเซฟรูป</h2>
-<img id="ovStrip" alt="แถบรูปที่เพิ่งถ่าย">
-<div id="qrbox"></div>
-<p id="st"></p>
-<p id="ovTimer"></p>
-<div class="actions">
-<button id="retry" hidden>ลองส่งอีกครั้ง</button>
-<button id="dl2">⬇ ดาวน์โหลด</button>
-<button id="pb2">🖨 ปริ้น</button>
-<button id="close" class="main">ถ่ายชุดใหม่</button>
-</div>
-</div>
-</div>
 
 <script>
 const $=id=>document.getElementById(id);
-const v=$('v'),cam=$('cam'),strip=$('strip'),sctx=strip.getContext('2d');
+const v=$('v'),sv=$('sv'),cam=$('cam'),ed=$('ed'),ectx=ed.getContext('2d');
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 // ใส่ค่าตรงนี้ได้เลย จะได้ไม่ต้องกรอกในหน้าเว็บทุกครั้ง
 const CFG={cloud:'',preset:''};
 
-const FILTERS={'ปกติ':'none','ขาวดำ':'grayscale(1) contrast(1.1)','ซีเปีย':'sepia(.85) contrast(1.05)','ฟิล์ม':'sepia(.25) saturate(1.4) contrast(1.1) hue-rotate(-8deg)'};
+const FILTERS={'ปกติ':'none','ขาวดำ':'grayscale(1) contrast(1.1)','ซีเปีย':'sepia(.85) contrast(1.05)','ฟิล์ม':'sepia(.25) saturate(1.4) contrast(1.1) hue-rotate(-8deg)','สดใส':'saturate(1.6) contrast(1.05) brightness(1.05)'};
 const THEMES={
  kids:{n:'การ์ตูน',bg:'#ffe9a8',ink:'#3b2a6b',acc:['#ff5d73','#4cc9f0','#7bd88f','#ff9f1c'],font:'Mali',cap:'Happy Birthday',deco:'confetti'},
  wedding:{n:'มินิมอล',bg:'#ffffff',ink:'#4d5b4a',acc:['#b79a5b'],font:'Prompt',cap:'Our Wedding Day',deco:'line'},
@@ -298,317 +365,443 @@ const THEMES={
  plain:{n:'เรียบ (เน้นโลโก้)',bg:'#ffffff',ink:'#222222',acc:['#222222'],font:'Prompt',cap:'Event Name',deco:'none'},
  custom:{n:'กำหนดเอง',bg:'#ffd1dc',ink:'#3b2a6b',acc:['#3b2a6b'],font:'Prompt',cap:'My Event',deco:'none'}
 };
-let filter='ปกติ',theme='kids',shots=[],stream=null,busy=false,logo=null,capEdited=false,lastBlob=null;
+// pa = photo aspect (w/h). strips print 2x6 in; the others fill a 4x6 in sheet
+const LAYOUTS={
+ strip4:{n:'แถบ 4 รูป',W:640,cols:1,rows:4,pa:4/3,P:40,gap:24,paper:'strip'},
+ strip3:{n:'แถบ 3 รูป',W:640,cols:1,rows:3,pa:4/3,P:40,gap:24,paper:'strip'},
+ grid4:{n:'ตาราง 4 รูป (4x6)',W:1200,H:1800,cols:2,rows:2,pa:3/4,P:50,gap:30,paper:'4x6'},
+ big1:{n:'รูปเดี่ยว (4x6)',W:1200,H:1800,cols:1,rows:1,pa:4/5,P:60,gap:0,paper:'4x6'}
+};
 
-// remember the organiser's choices between reloads
-let UI={};try{UI=JSON.parse(localStorage.getItem('pbui')||'{}')}catch(e){}
-if(UI.filter in FILTERS)filter=UI.filter;
-if(UI.theme in THEMES)theme=UI.theme;
-capEdited=!!UI.capEdited;
-function saveUI(){
-  UI={filter,theme,capEdited,cap:$('cap').value,cd:$('cd').value,pm:$('pm').value,ap:$('ap').checked,nq:$('nq').checked,cbg:$('cbg').value,cink:$('cink').value,cam:UI.cam};
-  try{localStorage.setItem('pbui',JSON.stringify(UI))}catch(e){}
-}
+/* ---------- saved settings ---------- */
+const DEF={layout:'strip4',theme:'kids',filter:'ปกติ',cap:'',capEdited:false,cbg:'#ffd1dc',cink:'#3b2a6b',cd:'3',mirror:true,sound:true,
+  guestFilter:true,retake:true,showQR:true,printMode:'off',pm:'2',pin:'',back:'60',cam:'',tested:false};
+const load=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
+const store=(k,o)=>{try{localStorage.setItem(k,typeof o==='string'?o:JSON.stringify(o));return true}catch(e){return false}};
+let ST=Object.assign({},DEF,load('pbui2')||{});
+if(!(ST.layout in LAYOUTS))ST.layout='strip4';if(!(ST.theme in THEMES))ST.theme='kids';if(!(ST.filter in FILTERS))ST.filter='ปกติ';
+const save=()=>store('pbui2',ST);
 
 let tt=0;
 function toast(t,ms=3500){const el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('on'),ms)}
+function pill(id,cls,t){const e=$(id);e.classList.remove('ok','warn');if(cls)e.classList.add(cls);e.textContent=t}
 
-function chips(el,obj,name,get,on,cur){
+let shots=[],stream=null,logo=null,bgImg=null,sessFilter=ST.filter;
+
+function chips(el,obj,name,label,cur,on){
+  el.innerHTML='';
   Object.keys(obj).forEach(k=>{
     const l=document.createElement('label');l.className='chip';
-    l.innerHTML='<input type="radio" name="'+name+'" '+(k===cur?'checked':'')+'><span>'+get(obj[k],k)+'</span>';
-    l.firstChild.onchange=()=>{on(k);saveUI()};el.appendChild(l);
+    l.innerHTML='<input type="radio" name="'+name+'"'+(k===cur?' checked':'')+'><span></span>';
+    l.lastChild.textContent=label(obj[k],k);
+    l.firstChild.onchange=()=>{on(k);save()};el.appendChild(l);
   });
 }
-chips($('filters'),FILTERS,'f',(o,k)=>k,k=>{filter=k;v.style.filter=FILTERS[k]},filter);
-chips($('themes'),THEMES,'t',o=>o.n,k=>{theme=k;$('cust').hidden=k!=='custom';if(!capEdited)$('cap').value=THEMES[k].cap;draw()},theme);
-v.style.filter=FILTERS[filter];$('cust').hidden=theme!=='custom';
-$('cap').value=capEdited&&UI.cap!=null?UI.cap:THEMES[theme].cap;
-['cd','pm'].forEach(k=>{if(UI[k])$(k).value=UI[k]});
-['ap','nq'].forEach(k=>{$(k).checked=!!UI[k]});
-if(UI.cbg)$('cbg').value=UI.cbg;if(UI.cink)$('cink').value=UI.cink;
-['cd','pm','ap','nq','cbg','cink'].forEach(k=>$(k).addEventListener('change',saveUI));
+chips($('layouts'),LAYOUTS,'l',o=>o.n,ST.layout,k=>{ST.layout=k;shots=[];draw()});
+chips($('themes'),THEMES,'t',o=>o.n,ST.theme,k=>{ST.theme=k;$('cust').hidden=k!=='custom';if(!ST.capEdited)$('cap').value=THEMES[k].cap;ST.cap=$('cap').value;draw()});
+chips($('filters'),FILTERS,'f',(o,k)=>k,ST.filter,k=>{ST.filter=k;v.style.filter=FILTERS[k]});
+v.style.filter=FILTERS[ST.filter];$('cust').hidden=ST.theme!=='custom';
+$('cap').value=ST.capEdited?ST.cap:THEMES[ST.theme].cap;
+$('cap').oninput=()=>{ST.capEdited=true;ST.cap=$('cap').value;save();draw()};
+
+// generic inputs with data-k
+document.querySelectorAll('[data-k]').forEach(el=>{
+  const k=el.dataset.k;
+  if(el.type==='checkbox')el.checked=!!ST[k];else el.value=ST[k];
+  el.addEventListener(el.type==='checkbox'||el.tagName==='SELECT'?'change':'input',()=>{
+    ST[k]=el.type==='checkbox'?el.checked:el.value;save();
+    if(k==='cbg'||k==='cink')draw();
+    if(k==='printMode')prPill();
+  });
+});
+function prPill(){pill('stPr',ST.printMode==='off'?'warn':'ok',{off:'ปริ้น: ปิด',guest:'ปริ้น: แขกกดเอง',auto:'ปริ้น: อัตโนมัติ'}[ST.printMode])}
+prPill();
+$('stPr').onclick=()=>goTab('share');
 
 // tabs
-document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
-  document.querySelectorAll('.tp').forEach(p=>p.hidden=p.dataset.p!==b.dataset.tab);
-});
+function goTab(t){
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x.dataset.tab===t));
+  document.querySelectorAll('.tp').forEach(p=>p.hidden=p.dataset.p!==t);
+  if(t==='gallery')refreshGallery();
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>goTab(b.dataset.tab));
+document.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{goTab(b.dataset.goto);$('set').scrollIntoView?.({behavior:'smooth'})});
+document.querySelector('.set').id='set';
 
-// custom theme
-let bgImg=null;
-$('cbg').oninput=$('cink').oninput=draw;
-$('cimg').onchange=e=>{
-  const f=e.target.files[0];if(!f){bgImg=null;draw();return}
-  const i=new Image();i.onload=()=>{bgImg=i;draw()};i.src=URL.createObjectURL(f);
-};
+/* ---------- images kept between reloads ---------- */
+function shrink(file,max,type,cb){
+  const i=new Image();
+  i.onload=()=>{const q=Math.min(1,max/Math.max(i.width,i.height)),c=document.createElement('canvas');
+    c.width=Math.round(i.width*q);c.height=Math.round(i.height*q);c.getContext('2d').drawImage(i,0,0,c.width,c.height);
+    URL.revokeObjectURL(i.src);cb(c.toDataURL(type,.88))};
+  i.src=URL.createObjectURL(file);
+}
+function setImg(key,url,set,btn){
+  if(!url){set(null);$(btn).hidden=true;try{localStorage.removeItem(key)}catch(e){}draw();return}
+  const i=new Image();i.onload=()=>{set(i);$(btn).hidden=false;draw()};i.src=url;
+}
+$('logo').onchange=e=>{const f=e.target.files[0];if(!f)return;shrink(f,600,'image/png',u=>{if(!store('pblogo',u))toast('ไฟล์ใหญ่เกิน จะใช้ได้แค่รอบนี้');setImg('pblogo',u,i=>logo=i,'logoClr')});e.target.value=''};
+$('logoClr').onclick=()=>setImg('pblogo',null,i=>logo=i,'logoClr');
+$('cimg').onchange=e=>{const f=e.target.files[0];if(!f)return;shrink(f,1400,'image/jpeg',u=>{if(!store('pbbg',u))toast('ไฟล์ใหญ่เกิน จะใช้ได้แค่รอบนี้');setImg('pbbg',u,i=>bgImg=i,'cimgClr')});e.target.value=''};
+$('cimgClr').onclick=()=>setImg('pbbg',null,i=>bgImg=i,'cimgClr');
+try{const l=localStorage.getItem('pblogo');if(l)setImg('pblogo',l,i=>logo=i,'logoClr');const b=localStorage.getItem('pbbg');if(b)setImg('pbbg',b,i=>bgImg=i,'cimgClr')}catch(e){}
 
-// stickers: preset emoji + uploaded images, placed on every strip
+/* ---------- stickers (positions stored as fractions so they survive layout changes) ---------- */
 const EMO=['🎉','🎂','🎈','🎁','⭐','✨','💖','🌸','🌈','🍀','🎀','👑','🥳','📸','🎵','🦄','🐻','🍓','🍦','☀️','🌴','🥂','🎓','💍','🏆'];
 let S=[],IM=[],sel=-1,drag=null;
-function saveS(){try{localStorage.setItem('pbs',JSON.stringify({S,IM:IM.map(m=>m.url)}))}catch(e){}}
+function saveS(){store('pbs2',{S,IM:IM.map(m=>m.url)})}
 function pal(){
   const el=$('stk');el.innerHTML='';
   EMO.forEach(e=>{const b=document.createElement('button');b.className='sb';b.textContent=e;b.onclick=()=>addS({k:'e',v:e});el.appendChild(b)});
-  IM.forEach((m,i)=>{const b=document.createElement('button');b.className='sb';b.innerHTML='<img src="'+m.url+'" alt="" style="height:1.4rem;width:auto;display:block">';b.onclick=()=>addS({k:'i',v:i});el.appendChild(b)});
+  IM.forEach((m,i)=>{const b=document.createElement('button');b.className='sb';const im=document.createElement('img');im.src=m.url;im.alt='';im.style.cssText='height:1.4rem;width:auto;display:block';b.appendChild(im);b.onclick=()=>addS({k:'i',v:i});el.appendChild(b)});
 }
-function addS(o){S.push(Object.assign({x:320,y:260+(S.length%6)*60,s:120,r:0},o));sel=S.length-1;syncCtl();draw();saveS()}
-function syncCtl(){const o=S[sel];$('sctl').hidden=!o;if(o){$('ssz').value=o.s;$('srt').value=Math.round(o.r*180/Math.PI)}}
-function drawStk(c){
+function addS(o){S.push(Object.assign({x:.5,y:.12+(S.length%6)*.05,s:.19,r:0},o));sel=S.length-1;syncCtl();draw();saveS()}
+function syncCtl(){const o=S[sel];$('sctl').hidden=!o;if(o){$('ssz').value=Math.round(o.s*100);$('srt').value=Math.round(o.r*180/Math.PI)}}
+function drawStk(c,W,H,showSel){
   S.forEach((o,i)=>{
-    c.save();c.translate(o.x,o.y);c.rotate(o.r);
-    if(o.k==='e'){c.font=o.s+'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillStyle='#000';c.fillText(o.v,0,0)}
-    else{const m=IM[o.v];if(m&&m.img.complete&&m.img.width){const q=o.s/Math.max(m.img.width,m.img.height);c.drawImage(m.img,-m.img.width*q/2,-m.img.height*q/2,m.img.width*q,m.img.height*q)}}
-    if(i===sel&&shots.length<4){c.strokeStyle='#e8472f';c.lineWidth=3;c.setLineDash([8,6]);c.strokeRect(-o.s/2,-o.s/2,o.s,o.s)}
+    const s=o.s*W;c.save();c.translate(o.x*W,o.y*H);c.rotate(o.r);
+    if(o.k==='e'){c.font=s+'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillStyle='#000';c.fillText(o.v,0,0)}
+    else{const m=IM[o.v];if(m&&m.img.complete&&m.img.width){const q=s/Math.max(m.img.width,m.img.height);c.drawImage(m.img,-m.img.width*q/2,-m.img.height*q/2,m.img.width*q,m.img.height*q)}}
+    if(showSel&&i===sel){c.strokeStyle='#e8472f';c.lineWidth=W/200;c.setLineDash([W/80,W/107]);c.strokeRect(-s/2,-s/2,s,s)}
     c.restore();
   });
 }
-$('simg').onchange=e=>{
-  const f=e.target.files[0];if(!f)return;
-  const i=new Image();
-  i.onload=()=>{
-    const q=Math.min(1,300/Math.max(i.width,i.height)),cv=document.createElement('canvas');
-    cv.width=Math.round(i.width*q);cv.height=Math.round(i.height*q);
-    cv.getContext('2d').drawImage(i,0,0,cv.width,cv.height);
-    const url=cv.toDataURL('image/png'),im=new Image();
-    im.onload=()=>{IM.push({url,img:im});pal();addS({k:'i',v:IM.length-1})};im.src=url;
-  };
-  i.src=URL.createObjectURL(f);e.target.value='';
-};
-$('ssz').oninput=()=>{if(S[sel]){S[sel].s=+$('ssz').value;draw()}};
+$('simg').onchange=e=>{const f=e.target.files[0];if(!f)return;shrink(f,300,'image/png',url=>{const im=new Image();im.onload=()=>{IM.push({url,img:im});pal();addS({k:'i',v:IM.length-1})};im.src=url});e.target.value=''};
+$('ssz').oninput=()=>{if(S[sel]){S[sel].s=$('ssz').value/100;draw()}};
 $('srt').oninput=()=>{if(S[sel]){S[sel].r=$('srt').value*Math.PI/180;draw()}};
 $('ssz').onchange=$('srt').onchange=saveS;
 $('sdel').onclick=()=>{if(sel>=0){S.splice(sel,1);sel=-1;syncCtl();draw();saveS()}};
 $('sclr').onclick=()=>{S=[];sel=-1;syncCtl();draw();saveS()};
-function spt(e){const r=strip.getBoundingClientRect();return{x:(e.clientX-r.left)*strip.width/r.width,y:(e.clientY-r.top)*strip.height/r.height}}
-strip.style.touchAction='none';
-strip.onpointerdown=e=>{
-  const p=spt(e);sel=-1;
-  for(let i=S.length-1;i>=0;i--){const o=S[i];if(Math.abs(p.x-o.x)<o.s/2&&Math.abs(p.y-o.y)<o.s/2){sel=i;drag={dx:o.x-p.x,dy:o.y-p.y};try{strip.setPointerCapture(e.pointerId)}catch(x){}break}}
+function ept(e){const r=ed.getBoundingClientRect();return{x:(e.clientX-r.left)*ed.width/r.width,y:(e.clientY-r.top)*ed.height/r.height}}
+ed.onpointerdown=e=>{
+  const p=ept(e),W=ed.width,H=ed.height;sel=-1;
+  for(let i=S.length-1;i>=0;i--){const o=S[i],h=o.s*W/2;if(Math.abs(p.x-o.x*W)<h&&Math.abs(p.y-o.y*H)<h){sel=i;drag={dx:o.x*W-p.x,dy:o.y*H-p.y};try{ed.setPointerCapture(e.pointerId)}catch(x){}break}}
   syncCtl();draw();
 };
-strip.onpointermove=e=>{if(drag&&sel>=0){const p=spt(e);S[sel].x=p.x+drag.dx;S[sel].y=p.y+drag.dy;draw()}};
-strip.onpointerup=()=>{if(drag){drag=null;saveS()}};
-try{
-  const d=JSON.parse(localStorage.getItem('pbs')||'{}');S=d.S||[];
-  (d.IM||[]).forEach(u=>{const im=new Image();im.onload=draw;im.src=u;IM.push({url:u,img:im})});
-}catch(e){}
+ed.onpointermove=e=>{if(drag&&sel>=0){const p=ept(e);S[sel].x=(p.x+drag.dx)/ed.width;S[sel].y=(p.y+drag.dy)/ed.height;draw()}};
+ed.onpointerup=ed.onpointercancel=()=>{if(drag){drag=null;saveS()}};
+{const d=load('pbs2');if(d){S=d.S||[];(d.IM||[]).forEach(u=>{const im=new Image();im.onload=draw;im.src=u;IM.push({url:u,img:im})})}}
 pal();
-$('cap').oninput=()=>{capEdited=true;draw();saveUI()};
-function setLogo(url){
-  if(!url){logo=null;$('logoClr').hidden=true;draw();return}
-  const img=new Image();img.onload=()=>{logo=img;$('logoClr').hidden=false;draw()};img.src=url;
-}
-$('logo').onchange=e=>{
-  const f=e.target.files[0];if(!f)return;
-  const i=new Image();
-  i.onload=()=>{ // shrink and keep it so the logo survives a reload
-    const q=Math.min(1,600/Math.max(i.width,i.height)),cv=document.createElement('canvas');
-    cv.width=Math.round(i.width*q);cv.height=Math.round(i.height*q);
-    cv.getContext('2d').drawImage(i,0,0,cv.width,cv.height);
-    const url=cv.toDataURL('image/png');
-    try{localStorage.setItem('pblogo',url)}catch(x){}
-    setLogo(url);
-  };
-  i.src=URL.createObjectURL(f);e.target.value='';
-};
-$('logoClr').onclick=()=>{try{localStorage.removeItem('pblogo')}catch(x){}setLogo(null)};
-try{const l=localStorage.getItem('pblogo');if(l)setLogo(l)}catch(e){}
 
-// camera
-function pill(id,ok,t){$(id).classList.toggle('ok',ok);$(id).textContent=t}
+/* ---------- drawing ---------- */
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function star(c,x,y,r,col,n=5,k=.45){c.fillStyle=col;c.beginPath();for(let i=0;i<2*n;i++){const a=-Math.PI/2+i*Math.PI/n,q=i%2?r*k:r;c.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q)}c.closePath();c.fill()}
+function heart(c,x,y,r,col){c.fillStyle=col;c.beginPath();c.moveTo(x,y+r*.9);c.bezierCurveTo(x-r*1.6,y-r*.2,x-r*.6,y-r*1.2,x,y-r*.4);c.bezierCurveTo(x+r*.6,y-r*1.2,x+r*1.6,y-r*.2,x,y+r*.9);c.fill()}
+function geo(){
+  const L=LAYOUTS[ST.layout],W=L.W,pw=(W-2*L.P-(L.cols-1)*L.gap)/L.cols,ph=pw/L.pa,rects=[];
+  for(let r=0;r<L.rows;r++)for(let c=0;c<L.cols;c++)rects.push({x:L.P+c*(pw+L.gap),y:L.P+r*(ph+L.gap),w:pw,h:ph});
+  const fy=L.P+L.rows*ph+(L.rows-1)*L.gap,base=logo?300:190;
+  let H,kf;
+  if(L.H){H=L.H;kf=Math.min(W/640,(H-fy-L.P/2)/base)}else{H=Math.round(fy+base);kf=1}
+  return{L,W,H,rects,fy,kf,k:W/640,n:rects.length};
+}
+function theme(){let T=THEMES[ST.theme];if(ST.theme==='custom')T=Object.assign({},T,{bg:ST.cbg,ink:ST.cink,acc:[ST.cink]});return T}
+function render(c,pics,showSel){
+  const G=geo(),{W,H,k,kf,fy}=G,T=theme();
+  c.canvas.width=W;c.canvas.height=H;c.setLineDash([]);
+  if(T.bg2){const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,T.bg);g.addColorStop(1,T.bg2);c.fillStyle=g}else c.fillStyle=T.bg;
+  c.fillRect(0,0,W,H);
+  if(ST.theme==='custom'&&bgImg){const q=Math.max(W/bgImg.width,H/bgImg.height),iw=bgImg.width*q,ih=bgImg.height*q;c.drawImage(bgImg,(W-iw)/2,(H-ih)/2,iw,ih)}
+  const R=rng(7),cnt=n=>Math.round(n*W*H/1254400);
+  if(T.deco==='confetti'||T.deco==='stars'){
+    for(let i=0,N=cnt(110);i<N;i++){
+      const x=R()*W,y=R()*H,col=T.acc[i%T.acc.length],s=(6+R()*10)*k,q=R();
+      if(T.deco==='stars'||q<.3)star(c,x,y,s*1.3,col);
+      else if(q<.65){c.fillStyle=col;c.beginPath();c.arc(x,y,s/2,0,7);c.fill()}
+      else{c.save();c.translate(x,y);c.rotate(R()*3);c.fillStyle=col;c.fillRect(-s/2,-s/4,s,s/2);c.restore()}
+    }
+  }else if(T.deco==='line'){
+    c.strokeStyle=T.acc[0];c.lineWidth=3*k;c.strokeRect(12*k,12*k,W-24*k,H-24*k);c.lineWidth=k;c.strokeRect(22*k,22*k,W-44*k,H-44*k);
+  }else if(T.deco==='stripes'){
+    const z=260*k;c.fillStyle=T.acc[0];c.beginPath();c.moveTo(0,0);c.lineTo(z,0);c.lineTo(0,z);c.fill();
+    c.fillStyle=T.acc[1];c.beginPath();c.moveTo(W,H);c.lineTo(W-z,H);c.lineTo(W,H-z);c.fill();
+  }else if(T.deco==='dots'){
+    const st=56*k;for(let y=0,r=0;y<H+st;y+=st,r++)for(let x=(r%2)*st/2,j=0;x<W+st;x+=st,j++){c.fillStyle=T.acc[(j*2+r)%T.acc.length];c.beginPath();c.arc(x,y,10*k,0,7);c.fill()}
+  }else if(T.deco==='grid'){
+    const st=40*k;c.strokeStyle=T.acc[1];c.globalAlpha=.3;c.lineWidth=2*k;
+    for(let x=0;x<=W;x+=st){c.beginPath();c.moveTo(x,0);c.lineTo(x,H);c.stroke()}
+    for(let y=0;y<=H;y+=st){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke()}
+    c.globalAlpha=1;c.strokeStyle=T.acc[0];c.lineWidth=6*k;c.shadowColor=T.acc[0];c.shadowBlur=24*k;c.strokeRect(10*k,10*k,W-20*k,H-20*k);c.shadowBlur=0;
+  }else if(T.deco==='film'){
+    c.fillStyle='#f2e8cf';const rr=(x,y)=>{c.beginPath();c.roundRect?c.roundRect(x,y,18*k,26*k,4*k):c.rect(x,y,18*k,26*k);c.fill()};
+    for(let y=14*k;y<H;y+=44*k){rr(11*k,y);rr(W-29*k,y)}
+  }else if(T.deco==='waves'){
+    c.lineWidth=5*k;
+    for(let y=10*k,j=0;y<H;y+=46*k,j++){c.strokeStyle=T.acc[j%2];c.beginPath();for(let x=0;x<=W;x+=8*k){const yy=y+Math.sin(x/(40*k)+j)*9*k;x?c.lineTo(x,yy):c.moveTo(x,yy)}c.stroke()}
+  }else if(T.deco==='leaves'){
+    for(let i=0,N=cnt(80);i<N;i++){c.fillStyle=T.acc[i%T.acc.length];c.beginPath();c.ellipse(R()*W,R()*H,(10+R()*16)*k,(5+R()*6)*k,R()*3.14,0,7);c.fill()}
+  }else if(T.deco==='sparkle'){
+    for(let i=0,N=cnt(90);i<N;i++){const x=R()*W,y=R()*H,s=(5+R()*12)*k;if(i%3)star(c,x,y,s,T.acc[i%T.acc.length],4,.2);else{c.fillStyle=T.acc[0];c.beginPath();c.arc(x,y,s/4,0,7);c.fill()}}
+  }
+  const ink=T.ink,corner=T.stk||({line:'heart',stripes:'br',grid:'br',film:'none',none:'none'}[T.deco])||'star';
+  G.rects.forEach((p,i)=>{
+    if(pics[i])c.drawImage(pics[i],p.x,p.y,p.w,p.h);
+    else{c.fillStyle='rgba(128,128,150,.25)';c.fillRect(p.x,p.y,p.w,p.h);
+      c.fillStyle=ink;c.globalAlpha=.4;c.font='600 '+64*k+'px Prompt,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(String(i+1),p.x+p.w/2,p.y+p.h/2);c.globalAlpha=1;c.textBaseline='alphabetic'}
+    c.strokeStyle=ink;c.lineWidth=6*k;c.strokeRect(p.x,p.y,p.w,p.h);
+    if(corner==='star')star(c,p.x+p.w-6*k,p.y+6*k,34*k,T.acc[i%T.acc.length]);
+    else if(corner==='heart')heart(c,p.x+p.w-22*k,p.y+p.h-22*k,14*k,T.acc[0]);
+    else if(corner==='br'){const a=8*k,b=40*k;c.strokeStyle=T.acc[0];c.lineWidth=8*k;c.beginPath();c.moveTo(p.x-a,p.y+b);c.lineTo(p.x-a,p.y-a);c.lineTo(p.x+b,p.y-a);c.moveTo(p.x+p.w+a,p.y+p.h-b);c.lineTo(p.x+p.w+a,p.y+p.h+a);c.lineTo(p.x+p.w-b,p.y+p.h+a);c.stroke()}
+  });
+  const wt=T.font==='Mali'?'700':'800',txt=$('cap').value,maxw=W-2*G.L.P;
+  let fs=54*kf;const fnt=()=>c.font=wt+' '+fs+'px '+T.font+',Prompt,sans-serif';
+  c.fillStyle=ink;c.textAlign='center';fnt();
+  while(c.measureText(txt).width>maxw&&fs>20*kf){fs-=2;fnt()}
+  c.fillText(txt,W/2,fy+78*kf);
+  c.globalAlpha=.7;c.font='400 '+26*kf+'px Prompt,sans-serif';
+  c.fillText(new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}),W/2,fy+122*kf);
+  c.globalAlpha=1;
+  if(logo){const bw=300*kf,bh=110*kf,r=Math.min(bw/logo.width,bh/logo.height),lw=logo.width*r,lh=logo.height*r;c.drawImage(logo,(W-lw)/2,fy+150*kf+(bh-lh)/2,lw,lh)}
+  drawStk(c,W,H,showSel);
+}
+function draw(){render(ectx,shots,true)}
+
+/* ---------- camera ---------- */
 async function start(id){
   if(stream)stream.getTracks().forEach(t=>t.stop());
   const vc={width:{ideal:1920},height:{ideal:1080}};if(id)vc.deviceId={exact:id};
   try{
     stream=await navigator.mediaDevices.getUserMedia({video:vc,audio:false});
-    v.srcObject=stream;await v.play();$('msg').style.display='none';$('shoot').disabled=false;$('open').hidden=true;
+    v.srcObject=stream;await v.play();$('msg').style.display='none';
     const list=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');
     const cur=stream.getVideoTracks()[0].getSettings().deviceId;
-    cam.innerHTML=list.map((d,i)=>'<option value="'+d.deviceId+'"'+(d.deviceId===cur?' selected':'')+'>'+(d.label||'กล้อง '+(i+1))+'</option>').join('');
-    UI.cam=cur;saveUI();
-    pill('stCam',true,'กล้อง: พร้อม');
+    cam.innerHTML='';list.forEach((d,i)=>{const o=new Option(d.label||'กล้อง '+(i+1),d.deviceId);o.selected=d.deviceId===cur;cam.add(o)});
+    ST.cam=cur;save();
+    stream.getVideoTracks()[0].onended=()=>{pill('stCam','','กล้อง: หลุด');toast('กล้องหลุดการเชื่อมต่อ เสียบใหม่แล้วกดเปิดกล้อง',8000);stream=null;camReady()};
   }catch(e){
-    if(id){stream=null;return start()} // saved camera unplugged: fall back to any camera
-    stream=null;$('shoot').disabled=true;$('open').hidden=false;
-    $('msg').style.display='grid';
-    $('msg').innerHTML='<div><b>⚠️</b>เปิดกล้องไม่ได้<br><small>เช็กว่ากด "อนุญาต" กล้องแล้ว, ไม่มีโปรแกรมอื่นใช้กล้องอยู่ และเปิดหน้านี้ผ่าน HTTPS<br>แตะที่นี่เพื่อลองอีกครั้ง</small></div>';
-    pill('stCam',false,'กล้อง: เปิดไม่ได้');
+    if(id){stream=null;return start()} // saved camera unplugged: try any camera
+    stream=null;$('msg').style.display='grid';
+    $('msg').innerHTML='<div><b>⚠️</b>เปิดกล้องไม่ได้<br><small>เช็กว่ากดอนุญาตกล้องแล้ว, ไม่มีโปรแกรมอื่นใช้กล้องอยู่ และเปิดหน้านี้ผ่าน HTTPS<br>แตะที่นี่เพื่อลองอีกครั้ง</small></div>';
   }
+  camReady();
 }
-$('open').onclick=()=>start(UI.cam);
-$('msg').onclick=()=>{if(!stream)start(UI.cam)};
+function camReady(){
+  const ok=!!stream;pill('stCam',ok?'ok':'',ok?'กล้อง: พร้อม':'กล้อง: ยังไม่เปิด');
+  $('ck1').classList.toggle('ok',ok);$('open').hidden=ok;$('test').disabled=$('go').disabled=!ok;
+}
+$('open').onclick=()=>start(ST.cam);
+$('msg').onclick=$('stCam').onclick=()=>{if(!stream)start(ST.cam);else goTab('camera')};
 $('msg').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('msg').click()}};
-$('stCam').onclick=()=>{if(!stream)start(UI.cam);else cam.focus()};
 cam.onchange=()=>start(cam.value);
-// open the camera straight away if permission was already given last time
-(async()=>{try{const p=await navigator.permissions.query({name:'camera'});if(p.state==='granted')start(UI.cam)}catch(e){}})();
-$('fs').onclick=async()=>{
-  const d=document,e=d.documentElement,on=d.fullscreenElement||d.webkitFullscreenElement;
-  try{
-    if(on){await (d.exitFullscreen||d.webkitExitFullscreen).call(d)}
-    else{const f=e.requestFullscreen||e.webkitRequestFullscreen;if(!f)throw 0;await f.call(e)}
-  }catch(err){toast('เบราว์เซอร์นี้เปิดเต็มจอจากปุ่มไม่ได้ ลองกด F11 (คอม) หรือเพิ่มหน้านี้ไว้ที่หน้าจอโฮม (มือถือ/iPad) แล้วเปิดจากไอคอน')}
-};
+(async()=>{try{const p=await navigator.permissions.query({name:'camera'});if(p.state==='granted')start(ST.cam)}catch(e){}})();
+$('ck3').classList.toggle('ok',!!ST.tested);
 
-// capture
+$('fs').onclick=()=>fullscreen(!(document.fullscreenElement||document.webkitFullscreenElement),true);
+async function fullscreen(on,loud){
+  const d=document,e=d.documentElement;
+  try{
+    if(on){const f=e.requestFullscreen||e.webkitRequestFullscreen;if(!f)throw 0;await f.call(e)}
+    else if(d.fullscreenElement||d.webkitFullscreenElement)await (d.exitFullscreen||d.webkitExitFullscreen).call(d);
+  }catch(x){if(loud)toast('เบราว์เซอร์นี้เปิดเต็มจอจากปุ่มไม่ได้ ลองกด F11 หรือเพิ่มหน้านี้ไว้ที่หน้าจอโฮมแล้วเปิดจากไอคอน',6000)}
+}
+
+/* ---------- sounds ---------- */
+let AC=null;
+function ac(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}catch(e){return null}}
+function tone(f,d,vol=.25){if(!ST.sound)return;const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.frequency.value=f;g.gain.setValueAtTime(vol,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+d)}
+function shutter(){if(!ST.sound)return;const a=ac();if(!a)return;const n=a.sampleRate*.12,b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3);const s=a.createBufferSource(),g=a.createGain();g.gain.value=.5;s.buffer=b;s.connect(g).connect(a.destination);s.start()}
+
+/* ---------- capture ---------- */
 function snap(){
-  const w=v.videoWidth,h=v.videoHeight,tw=800,th=600,c=document.createElement('canvas');
+  const src=sv.videoWidth?sv:v,w=src.videoWidth,h=src.videoHeight,L=LAYOUTS[ST.layout];
+  const tw=L.pa>=1?1000:800,th=Math.round(tw/L.pa),c=document.createElement('canvas');
   c.width=tw;c.height=th;const x=c.getContext('2d');
-  const r=Math.max(tw/w,th/h),sw=tw/r,sh=th/r;
-  x.save();x.translate(tw,0);x.scale(-1,1);
-  if('filter' in x){x.filter=FILTERS[filter];x.drawImage(v,(w-sw)/2,(h-sh)/2,sw,sh,0,0,tw,th)}
+  const r=Math.max(tw/w,th/h),sw=tw/r,sh=th/r,f=sessFilter;
+  x.save();if(ST.mirror){x.translate(tw,0);x.scale(-1,1)}
+  if('filter' in x){x.filter=FILTERS[f];x.drawImage(src,(w-sw)/2,(h-sh)/2,sw,sh,0,0,tw,th)}
   else{
-    x.drawImage(v,(w-sw)/2,(h-sh)/2,sw,sh,0,0,tw,th);
-    if(filter!=='ปกติ'){const d=x.getImageData(0,0,tw,th),p=d.data;
+    x.drawImage(src,(w-sw)/2,(h-sh)/2,sw,sh,0,0,tw,th);
+    if(f==='ขาวดำ'||f==='ซีเปีย'){const d=x.getImageData(0,0,tw,th),p=d.data;
       for(let i=0;i<p.length;i+=4){const g=.3*p[i]+.59*p[i+1]+.11*p[i+2];
-        if(filter==='ขาวดำ'){p[i]=p[i+1]=p[i+2]=g}
-        else{p[i]=Math.min(255,g*1.15+25);p[i+1]=g;p[i+2]=Math.max(0,g*.8)}}
+        if(f==='ขาวดำ'){p[i]=p[i+1]=p[i+2]=g}else{p[i]=Math.min(255,g*1.15+25);p[i+1]=g;p[i+2]=Math.max(0,g*.8)}}
       x.putImageData(d,0,0)}
   }
   x.restore();return c;
 }
-function resetDots(){document.querySelectorAll('#dots i').forEach(i=>i.className='')}
-async function run(){
-  if(busy||!stream)return;busy=true;
-  clearTimeout(rt);clearInterval(rti);$('ov').hidden=true; // never show the previous guest's QR while shooting
-  document.body.classList.add('running');shots=[];$('shoot').disabled=true;$('dl').disabled=$('again').disabled=true;
-  resetDots();draw();
-  const secs=+$('cd').value||3;
-  for(let n=0;n<4;n++){
-    $('shotN').hidden=false;$('shotN').textContent='รูปที่ '+(n+1)+' / 4';
-    $('count').style.display='grid';
-    for(let s=secs;s>0;s--){$('count').textContent=s;await wait(1000)}
-    $('count').textContent='ยิ้ม!';await wait(250);
-    $('count').style.display='none';
-    const f=$('flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
-    shots.push(snap());document.querySelectorAll('#dots i')[n].className='on';draw();
-    await wait(700);
-  }
-  $('shotN').hidden=true;
-  busy=false;document.body.classList.remove('running');$('shoot').disabled=false;$('dl').disabled=$('again').disabled=false;
-  finish();
-}
-$('shoot').onclick=run;
 
-// kiosk mode: guest-facing flow (idle -> shoot -> result/QR -> idle)
-let rt=null,rti=null,ct=0;
-function setKiosk(on){
-  document.body.classList.toggle('kiosk',on);
-  if(on&&!cfg().cloud)toast('ยังไม่ได้ตั้งค่าอัปโหลด แขกจะสแกน QR ไม่ได้ (ตั้งค่าที่ปุ่ม ⚙️)',6000);
-  $('idt').textContent=$('cap').value;
-  try{
-    if(on){const e=document.documentElement,f=e.requestFullscreen||e.webkitRequestFullscreen;if(f)f.call(e)}
-    else if(document.fullscreenElement)document.exitFullscreen();
-  }catch(x){}
+/* ---------- guest stage ---------- */
+let mode=null,timer=0,busy=false,retakes=0,out=document.createElement('canvas'),lastPrint='',lastBlob=null,lastThumb='',printedThis=false,wl=null,curT=0;
+const stage=$('stage');
+function clearTimer(){clearInterval(timer);timer=0}
+function countdown(el,secs,fmt,fn){clearTimer();let n=secs;el.textContent=fmt(n);timer=setInterval(()=>{n--;el.textContent=fmt(n);if(n<=0){clearTimer();fn()}},1000)}
+function show(s){
+  clearTimer();stage.dataset.s=s;
+  document.querySelectorAll('#fgrid video').forEach(x=>{x.srcObject=s==='choose'?stream:null;if(s==='choose')x.play().catch(()=>{})});
+  if(s==='attract'){
+    sessFilter=ST.filter;sv.style.filter=FILTERS[sessFilter];
+    $('aT').textContent=$('cap').value;
+    const n=geo().n;$('aS').textContent='ถ่าย '+n+' รูป'+(cfg().cloud?' · สแกน QR เอารูปกลับบ้าน':'')+(ST.printMode!=='off'?' · ได้รูปปริ้น':'');
+  }
+  if(s==='choose'){markF();chooseIdle()}
 }
-$('kiosk').onclick=()=>{if(!stream){toast('เปิดกล้องก่อนเข้าโหมดตู้');return}setKiosk(true)};
-$('idle').onclick=run;
-$('cornr').onpointerdown=()=>{clearTimeout(ct);ct=setTimeout(()=>setKiosk(false),1500)};
-$('cornr').onpointerup=$('cornr').onpointerleave=()=>clearTimeout(ct);
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'&&document.body.classList.contains('kiosk')){setKiosk(false);return}
-  if(e.code!=='Space'||/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName)||$('setDlg').open)return;
-  if(busy||!stream)return;
-  e.preventDefault();
-  if($('ov').hidden||document.body.classList.contains('kiosk'))run();else reset();
+async function openStage(m){
+  if(!stream){toast('เปิดกล้องก่อน');return}
+  mode=m;stage.hidden=false;sv.srcObject=stream;sv.play().catch(()=>{});
+  $('sx').hidden=m!=='kiosk'?false:true;$('hot').hidden=m!=='kiosk';$('staff').hidden=true;
+  if(m==='kiosk'){
+    fullscreen(true);wake(true);
+    if(!cfg().cloud&&ST.showQR)toast('ยังไม่ได้ตั้งค่า QR แขกจะยังสแกนเอารูปไม่ได้ (รูปจะเก็บไว้ในเครื่อง)',6000);
+  }
+  ac();show('attract');
+}
+function closeStage(){
+  clearTimer();busy=false;stage.hidden=true;$('staff').hidden=true;sv.srcObject=null;
+  document.querySelectorAll('#fgrid video').forEach(x=>x.srcObject=null);
+  if(mode==='kiosk'){fullscreen(false);wake(false)}
+  mode=null;draw();refreshGallery();
+}
+$('test').onclick=()=>openStage('test');
+$('go').onclick=()=>openStage('kiosk');
+$('sx').onclick=closeStage;
+
+// keep the screen awake during the event
+async function wake(on){try{if(on){wl=await navigator.wakeLock.request('screen')}else if(wl){await wl.release();wl=null}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(mode==='kiosk'&&document.visibilityState==='visible')wake(true)});
+// hide the mouse pointer while guests use the booth
+let curTimer=0;
+stage.addEventListener('pointermove',()=>{stage.classList.remove('nocur');clearTimeout(curTimer);curTimer=setTimeout(()=>stage.classList.add('nocur'),3000)});
+
+// attract -> (choose) -> shoot
+$('sA').onclick=()=>{if(ST.guestFilter)show('choose');else shoot()};
+Object.keys(FILTERS).forEach(k=>{
+  const b=document.createElement('button');b.className='fc';b.dataset.f=k;
+  const vv=document.createElement('video');vv.muted=true;vv.playsInline=true;vv.style.filter=FILTERS[k];
+  const sp=document.createElement('span');sp.textContent=k;b.append(vv,sp);
+  b.onclick=()=>{sessFilter=k;sv.style.filter=FILTERS[k];markF();tone(880,.08,.15);chooseIdle()};
+  $('fgrid').appendChild(b);
 });
-function reset(){clearTimeout(rt);clearInterval(rti);$('ovTimer').textContent='';shots=[];resetDots();$('dl').disabled=$('again').disabled=true;$('ov').hidden=true;draw()}
-$('again').onclick=reset;$('close').onclick=reset;
+function chooseIdle(){countdown({set textContent(x){}},40,()=>'',()=>show('attract'))}
+function markF(){document.querySelectorAll('.fc').forEach(b=>b.classList.toggle('on',b.dataset.f===sessFilter))}
+$('cBack').onclick=()=>show('attract');
+$('cGo').onclick=()=>shoot();
 
-// drawing helpers
-function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-function star(c,x,y,r,col,n=5,k=.45){c.fillStyle=col;c.beginPath();for(let i=0;i<2*n;i++){const a=-Math.PI/2+i*Math.PI/n,q=i%2?r*k:r;c.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q)}c.closePath();c.fill()}
-function heart(c,x,y,r,col){c.fillStyle=col;c.beginPath();c.moveTo(x,y+r*.9);c.bezierCurveTo(x-r*1.6,y-r*.2,x-r*.6,y-r*1.2,x,y-r*.4);c.bezierCurveTo(x+r*.6,y-r*1.2,x+r*1.6,y-r*.2,x,y+r*.9);c.fill()}
-
-function draw(){
-  let T=THEMES[theme];if(theme==='custom')T=Object.assign({},T,{bg:$('cbg').value,ink:$('cink').value});const c=sctx,W=640,P=40,pw=560,ph=420,gap=24,fy=P+4*ph+3*gap,H=fy+(logo?300:190);
-  strip.height=H;
-  if(T.bg2){const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,T.bg);g.addColorStop(1,T.bg2);c.fillStyle=g}else c.fillStyle=T.bg;
-  c.fillRect(0,0,W,H);
-  if(theme==='custom'&&bgImg){const q=Math.max(W/bgImg.width,H/bgImg.height),iw=bgImg.width*q,ih=bgImg.height*q;c.drawImage(bgImg,(W-iw)/2,(H-ih)/2,iw,ih)}
-  const R=rng(7);
-  if(T.deco==='confetti'||T.deco==='stars'){
-    for(let i=0;i<110;i++){
-      const x=R()*W,y=R()*H,col=T.acc[i%T.acc.length],s=6+R()*10,k=R();
-      if(T.deco==='stars'||k<.3)star(c,x,y,s*1.3,col);
-      else if(k<.65){c.fillStyle=col;c.beginPath();c.arc(x,y,s/2,0,7);c.fill()}
-      else{c.save();c.translate(x,y);c.rotate(R()*3);c.fillStyle=col;c.fillRect(-s/2,-s/4,s,s/2);c.restore()}
-    }
-  }else if(T.deco==='line'){
-    c.strokeStyle=T.acc[0];c.lineWidth=3;c.strokeRect(12,12,W-24,H-24);c.lineWidth=1;c.strokeRect(22,22,W-44,H-44);
-  }else if(T.deco==='stripes'){
-    c.fillStyle=T.acc[0];c.beginPath();c.moveTo(0,0);c.lineTo(260,0);c.lineTo(0,260);c.fill();
-    c.fillStyle=T.acc[1];c.beginPath();c.moveTo(W,H);c.lineTo(W-260,H);c.lineTo(W,H-260);c.fill();
-  }else if(T.deco==='dots'){
-    for(let y=0,r=0;y<H+60;y+=56,r++)for(let x=(r%2)*28;x<W+60;x+=56){c.fillStyle=T.acc[(x/28+r)%T.acc.length|0];c.beginPath();c.arc(x,y,10,0,7);c.fill()}
-  }else if(T.deco==='grid'){
-    c.strokeStyle=T.acc[1];c.globalAlpha=.3;c.lineWidth=2;
-    for(let x=0;x<=W;x+=40){c.beginPath();c.moveTo(x,0);c.lineTo(x,H);c.stroke()}
-    for(let y=0;y<=H;y+=40){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke()}
-    c.globalAlpha=1;c.strokeStyle=T.acc[0];c.lineWidth=6;c.shadowColor=T.acc[0];c.shadowBlur=24;c.strokeRect(10,10,W-20,H-20);c.shadowBlur=0;
-  }else if(T.deco==='film'){
-    c.fillStyle='#f2e8cf';
-    for(let y=14;y<H;y+=44){c.beginPath();c.roundRect?c.roundRect(11,y,18,26,4):c.rect(11,y,18,26);c.fill();c.beginPath();c.roundRect?c.roundRect(W-29,y,18,26,4):c.rect(W-29,y,18,26);c.fill()}
-  }else if(T.deco==='waves'){
-    c.lineWidth=5;
-    for(let y=10,k=0;y<H;y+=46,k++){c.strokeStyle=T.acc[k%2];c.beginPath();for(let x=0;x<=W;x+=8){const yy=y+Math.sin(x/40+k)*9;x?c.lineTo(x,yy):c.moveTo(x,yy)}c.stroke()}
-  }else if(T.deco==='leaves'){
-    for(let i=0;i<80;i++){c.fillStyle=T.acc[i%T.acc.length];c.beginPath();c.ellipse(R()*W,R()*H,10+R()*16,5+R()*6,R()*3.14,0,7);c.fill()}
-  }else if(T.deco==='sparkle'){
-    for(let i=0;i<90;i++){const x=R()*W,y=R()*H,s=5+R()*12;if(i%3)star(c,x,y,s,T.acc[i%T.acc.length],4,.2);else{c.fillStyle=T.acc[0];c.beginPath();c.arc(x,y,s/4,0,7);c.fill()}}
+async function shoot(){
+  if(busy||!stream)return;busy=true;show('shoot');
+  const n=geo().n,secs=+ST.cd||3,th=$('thumbs'),cnt=$('count');
+  shots=[];th.innerHTML='<i></i>'.repeat(n);
+  const big=(t,word)=>{cnt.textContent=t;cnt.className=word?'word':'';void cnt.offsetWidth;cnt.classList.add('pop')};
+  $('shotN').textContent='เตรียมตัว!';big('พร้อมนะ?',true);await wait(1300);
+  for(let i=0;i<n;i++){
+    if(stage.hidden){busy=false;return}
+    $('shotN').textContent=n>1?'รูปที่ '+(i+1)+' / '+n:'ยิ้มกว้างๆ';
+    for(let s=secs;s>0;s--){big(s);tone(s===1?660:520,.15);await wait(1000);if(stage.hidden){busy=false;return}}
+    big('ยิ้ม! 😁',true);await wait(250);
+    const f=$('flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');shutter();
+    const shot=snap();shots.push(shot);cnt.textContent='';
+    const u=shot.toDataURL('image/jpeg',.7);th.children[i].style.backgroundImage='url('+u+')';
+    $('freeze').src=u;$('freeze').classList.add('on');await wait(1100);$('freeze').classList.remove('on');
   }
-  const ink=T.ink;
-  for(let i=0;i<4;i++){
-    const y=P+i*(ph+gap);
-    if(shots[i])c.drawImage(shots[i],0,0,800,600,P,y,pw,ph);
-    else{c.fillStyle='rgba(128,128,150,.25)';c.fillRect(P,y,pw,ph);
-      c.fillStyle=ink;c.globalAlpha=.4;c.font='600 64px Prompt,sans-serif';c.textAlign='center';c.fillText(String(i+1),W/2,y+ph/2+22);c.globalAlpha=1}
-    c.strokeStyle=ink;c.lineWidth=6;c.strokeRect(P,y,pw,ph);
-    const s=T.stk||({line:'heart',stripes:'br',grid:'br',film:'none',none:'none'}[T.deco])||'star';
-    if(s==='star')star(c,P+pw-6,y+6,34,T.acc[i%T.acc.length]);
-    else if(s==='heart')heart(c,P+pw-22,y+ph-22,14,T.acc[0]);
-    else if(s==='br'){c.strokeStyle=T.acc[0];c.lineWidth=8;c.beginPath();c.moveTo(P-8,y+40);c.lineTo(P-8,y-8);c.lineTo(P+40,y-8);c.moveTo(P+pw+8,y+ph-40);c.lineTo(P+pw+8,y+ph+8);c.lineTo(P+pw-40,y+ph+8);c.stroke()}
-  }
-  const wt=T.font==='Mali'?'700':'800',txt=$('cap').value;
-  let fs=54;c.fillStyle=ink;c.textAlign='center';c.font=wt+' '+fs+'px '+T.font+',Prompt,sans-serif';
-  while(c.measureText(txt).width>pw&&fs>28){fs-=2;c.font=wt+' '+fs+'px '+T.font+',Prompt,sans-serif'}
-  c.fillText(txt,W/2,fy+78);
-  c.globalAlpha=.7;c.font='400 26px Prompt,sans-serif';
-  c.fillText(new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}),W/2,fy+122);
-  c.globalAlpha=1;
-  if(logo){const r=Math.min(300/logo.width,110/logo.height),lw=logo.width*r,lh=logo.height*r;c.drawImage(logo,(W-lw)/2,fy+150+(110-lh)/2,lw,lh)}
-  drawStk(c);
+  $('shotN').textContent='';busy=false;
+  render(out.getContext('2d'),shots,false);
+  if(ST.retake&&retakes<1){
+    $('rImg').src=out.toDataURL('image/jpeg',.85);show('review');
+    countdown($('rT'),20,s=>'ใช้ชุดนี้อัตโนมัติใน '+s+' วินาที',accept);
+  }else accept();
 }
-function dl(){const a=document.createElement('a');a.download='photobooth-'+Date.now()+'.png';a.href=strip.toDataURL('image/png');a.click()}
-$('dl').onclick=dl;$('dl2').onclick=dl;
+$('rOk').onclick=()=>accept();
+$('rAgain').onclick=()=>{retakes++;shoot()};
 
-// print: 4x6 in (2 strips side by side, cut in half) or single 2x6 in strip
-async function doPrint(){
-  if(shots.length<4){toast('ถ่ายให้ครบ 4 รูปก่อนค่อยสั่งปริ้น');return}
-  const n=$('pm').value==='2'?2:1;
-  $('pg').textContent='@page{size:'+(n*2)+'in 6in;margin:0}';
-  const u=strip.toDataURL('image/png');
-  $('pr').innerHTML=('<img src="'+u+'">').repeat(n);
+async function accept(){
+  if(stage.dataset.s==='done')return;
+  retakes=0;printedThis=false;
+  $('dImg').src=out.toDataURL('image/jpeg',.85);
+  const qr=$('dqr');qr.innerHTML='<div class="spin"></div>';qr.hidden=!(ST.showQR||mode==='test');
+  $('dH').textContent=qr.hidden?'เสร็จแล้ว! 🎉':'สแกนเพื่อเซฟรูป';
+  $('dSt').textContent=qr.hidden?'สแกน QR ที่จอข้างๆ เพื่อเอารูปกลับบ้านได้เลย':'กำลังเตรียม QR...';
+  $('dRetry').hidden=true;$('dPrint').hidden=ST.printMode!=='guest';$('dPrint').disabled=false;$('dPrint').textContent='🖨 ปริ้นรูป';
+  show('done');
+  countdown($('dT'),+ST.back||60,s=>s<=15?'กลับหน้าแรกใน '+s+' วินาที':'',finishSession);
+  if(mode==='test'){ST.tested=true;save();$('ck3').classList.add('ok')}
+  lastBlob=await new Promise(r=>out.toBlob(r,'image/jpeg',.92));
+  lastPrint=out.toDataURL('image/jpeg',.95);lastThumb=thumb();
+  const rec={t:Date.now(),blob:lastBlob,url:''};
+  try{rec.id=await dbAdd(rec)}catch(e){}
+  bump();
+  if(ST.printMode==='auto'){doPrint();$('dSt').textContent+=' · กำลังส่งปริ้น'}
+  sendQR(rec);
+}
+async function sendQR(rec){
+  const qr=$('dqr'),vis=!qr.hidden,st=$('dSt');
+  $('dRetry').hidden=true;if(vis)qr.innerHTML='<div class="spin"></div>';
+  try{
+    const u=await upload(rec.blob);rec.url=u;if(rec.id!=null)dbPut(rec).catch(()=>{});
+    const vu=new URL('v.html?u='+encodeURIComponent(u),location.href).href;pushBoard(vu);
+    if(!vis)return;
+    qr.innerHTML='';
+    if(typeof QRCode==='undefined'){st.textContent='สร้าง QR ไม่ได้ ลิงก์รูปคือ '+u;return}
+    new QRCode(qr,{text:vu,width:240,height:240,correctLevel:QRCode.CorrectLevel.M});
+    st.textContent='ใช้กล้องมือถือสแกน แล้วกด "บันทึกรูปลงมือถือ"';
+  }catch(e){
+    if(!vis)return;
+    if(e.message==='nocfg'){qr.hidden=true;$('dH').textContent='เสร็จแล้ว! 🎉'}else qr.innerHTML='<div style="font-size:3rem">⚠️</div>';
+    st.textContent=e.message==='nocfg'?'รูปถูกเก็บไว้ในเครื่องแล้ว ขอรับรูปได้จากเจ้าหน้าที่':'อัปโหลดไม่สำเร็จ (รูปถูกเก็บไว้ในเครื่องแล้ว) ลองส่งอีกครั้งได้';
+    $('dRetry').hidden=e.message==='nocfg';$('dRetry').onclick=()=>sendQR(rec);
+  }
+}
+$('dPrint').onclick=()=>{if(printedThis)return;printedThis=true;$('dPrint').disabled=true;$('dPrint').textContent='🖨 ส่งปริ้นแล้ว';doPrint()};
+$('dFin').onclick=finishSession;
+function finishSession(){
+  if(mode==='test'){closeStage();toast('ทดสอบเรียบร้อย พร้อมเริ่มโหมดตู้');return}
+  show('thanks');tone(784,.12,.15);setTimeout(()=>tone(1046,.2,.15),130);
+  setTimeout(()=>{if(stage.dataset.s==='thanks')show('attract')},2500);
+}
+
+// keyboard: Space/Enter = main action, Esc = staff menu (kiosk) / close (test)
+document.addEventListener('keydown',e=>{
+  if(stage.hidden){return}
+  if(e.key==='Escape'){e.preventDefault();if(mode==='kiosk')openStaff();else closeStage();return}
+  if(!$('staff').hidden||(e.code!=='Space'&&e.key!=='Enter'))return;
+  e.preventDefault();
+  const s=stage.dataset.s;
+  if(s==='attract')$('sA').click();else if(s==='choose')shoot();else if(s==='review')accept();else if(s==='done')finishSession();
+});
+
+/* ---------- staff menu (reliable kiosk exit) ---------- */
+// 5 quick taps, or press and hold 1.5 s. Ignores pointercancel/leave, which touch screens fire on a long press.
+const hot=$('hot');let taps=0,tapT=0,holdT=0;
+hot.addEventListener('pointerdown',e=>{
+  e.preventDefault();e.stopPropagation();
+  taps++;clearTimeout(tapT);tapT=setTimeout(()=>taps=0,2500);
+  if(taps>=5){taps=0;hot.classList.remove('hold');clearTimeout(holdT);openStaff();return}
+  clearTimeout(holdT);hot.classList.remove('hold');void hot.offsetWidth;hot.classList.add('hold');
+  holdT=setTimeout(()=>{hot.classList.remove('hold');openStaff()},1500);
+});
+hot.addEventListener('pointerup',()=>{clearTimeout(holdT);hot.classList.remove('hold')});
+hot.addEventListener('contextmenu',e=>e.preventDefault());
+hot.addEventListener('click',e=>e.stopPropagation());
+function openStaff(){
+  const c=count();$('stCount').textContent='วันนี้ถ่ายไป '+c+' ชุด';
+  $('pinIn').hidden=!ST.pin;$('pinIn').value='';$('stReprint').disabled=!lastPrint;
+  $('staff').hidden=false;if(ST.pin)setTimeout(()=>$('pinIn').focus(),50);
+}
+function pinOk(){if(!ST.pin||$('pinIn').value===ST.pin)return true;$('pinIn').value='';toast('PIN ไม่ถูกต้อง');return false}
+$('stExit').onclick=()=>{if(pinOk())closeStage()};
+$('stReprint').onclick=()=>{if(pinOk()){$('staff').hidden=true;doPrint()}};
+$('stClose').onclick=()=>$('staff').hidden=true;
+$('pinIn').onkeydown=e=>{if(e.key==='Enter')$('stExit').click()};
+
+/* ---------- print ---------- */
+async function doPrint(url){
+  url=url||lastPrint;if(!url){toast('ยังไม่มีรูปให้ปริ้น');return}
+  const L=LAYOUTS[ST.layout],n=L.paper==='strip'&&ST.pm==='2'?2:1;
+  $('pg').textContent='@page{size:'+(L.paper==='strip'?n*2+'in 6in':'4in 6in')+';margin:0}';
+  $('pr').innerHTML='';for(let i=0;i<n;i++){const im=new Image();im.src=url;$('pr').appendChild(im)}
   await Promise.all([...$('pr').querySelectorAll('img')].map(i=>i.decode().catch(()=>{})));
   window.print();
 }
-$('pb').onclick=doPrint;$('pb2').onclick=doPrint;
+$('pTest').onclick=()=>{const c=document.createElement('canvas');render(c.getContext('2d'),shots,false);doPrint(c.toDataURL('image/jpeg',.95))};
 
-// upload + QR
-function cfg(){let s={};try{s=JSON.parse(localStorage.getItem('pb')||'{}')}catch(e){}return{cloud:s.cloud||CFG.cloud,preset:s.preset||CFG.preset,tag:s.tag||'photobooth'}}
+/* ---------- upload + QR ---------- */
+function cfg(){const s=load('pb')||{};return{cloud:s.cloud||CFG.cloud,preset:s.preset||CFG.preset,tag:s.tag||'photobooth'}}
 function bqUrl(){const c=cfg();return new URL('qr.html?c='+encodeURIComponent(c.cloud)+'&t='+encodeURIComponent(c.tag),location.href).href}
-const c0=cfg();$('cloud').value=c0.cloud;$('preset').value=c0.preset;$('tag').value=c0.tag;$('bqlink').value=bqUrl();
-function upPill(){const c=cfg();pill('stUp',!!(c.cloud&&c.preset),c.cloud&&c.preset?'QR: พร้อม':'QR: ยังไม่ตั้งค่า')}
-upPill();
+function upPill(){const c=cfg(),ok=!!(c.cloud&&c.preset);pill('stUp',ok?'ok':'warn',ok?'QR: พร้อม':'QR: ยังไม่ตั้งค่า');$('ck2').classList.toggle('ok',ok)}
+{const c=cfg();$('cloud').value=c.cloud;$('preset').value=c.preset;$('tag').value=c.tag;$('bqlink').value=bqUrl();upPill()}
+$('stUp').onclick=()=>goTab('share');
 $('saveCfg').onclick=()=>{
   if(!$('cloud').value.trim()||!$('preset').value.trim()){toast('กรอก Cloud name และ Upload preset ให้ครบก่อน');return}
-  try{localStorage.setItem('pb',JSON.stringify({cloud:$('cloud').value.trim(),preset:$('preset').value.trim(),tag:$('tag').value.trim()||'photobooth'}))}catch(e){}
-  $('bqlink').value=bqUrl();upPill();$('setDlg').close();toast('บันทึกการตั้งค่าแล้ว');
+  store('pb',{cloud:$('cloud').value.trim(),preset:$('preset').value.trim(),tag:$('tag').value.trim()||'photobooth'});
+  $('bqlink').value=bqUrl();upPill();toast('บันทึกแล้ว');
 };
-const openCfg=()=>{const d=$('setDlg');if(d.showModal)d.showModal();else d.setAttribute('open','')};
-$('gear').onclick=$('stUp').onclick=openCfg;
-$('cfgClose').onclick=()=>$('setDlg').close();
 $('bqlink').onclick=async()=>{$('bqlink').select();try{await navigator.clipboard.writeText($('bqlink').value);toast('คัดลอกลิงก์แล้ว')}catch(e){}};
 async function upload(blob){
   const {cloud,preset,tag}=cfg();if(!cloud||!preset)throw new Error('nocfg');
@@ -624,53 +817,74 @@ async function upload(blob){
   }
   throw err;
 }
-const setSt=t=>$('st').textContent=t;
-async function send(){
-  $('retry').hidden=true;$('qrbox').style.display='none';$('qrbox').innerHTML='';setSt('กำลังอัปโหลดรูป...');
-  try{
-    const u=await upload(lastBlob),vu=new URL('v.html?u='+encodeURIComponent(u),location.href).href;
-    pushBoard(vu);
-    if(typeof QRCode==='undefined'){setSt('สร้าง QR ไม่ได้ ลิงก์รูปคือ '+u);return}
-    $('qrbox').style.display='inline-block';
-    new QRCode($('qrbox'),{text:vu,width:260,height:260,correctLevel:QRCode.CorrectLevel.M});
-    setSt('สแกนแล้วกดปุ่ม "บันทึกรูปลงมือถือ"');
-  }catch(e){
-    setSt(e.message==='nocfg'?'ยังไม่ได้ตั้งค่าอัปโหลด (กดปุ่ม ⚙️ ตั้งค่า ด้านบน) ระหว่างนี้ดาวน์โหลดรูปไว้ก่อนได้':'อัปโหลดไม่สำเร็จ เช็กเน็ตแล้วกด "ลองส่งอีกครั้ง" หรือดาวน์โหลดรูปไว้ก่อน');
-    $('retry').hidden=false;$('ov').hidden=false;
-  }
-}
-async function finish(){
-  $('ov').hidden=document.body.classList.contains('kiosk')&&$('nq').checked;
-  lastBlob=await new Promise(r=>strip.toBlob(r,'image/jpeg',.9));
-  lastThumb=thumb();$('ovStrip').src=lastThumb;
-  if(document.body.classList.contains('kiosk')){ // clear the guest's QR automatically so the next guest starts clean
-    let left=90;$('ovTimer').textContent='';clearInterval(rti);
-    rti=setInterval(()=>{left--;$('ovTimer').textContent=left<=30?'จะปิดเองใน '+left+' วินาที':'';if(left<=0)reset()},1000);
-  }
-  send();
-  if($('ap').checked)doPrint();
-}
-$('retry').onclick=send;
-
-// separate QR board page (qr.html): last 5 photos + QR, same browser/computer only
-let lastThumb='';
+// separate QR board page (qr.html): last 5 photos + QR
 const BC='BroadcastChannel' in window?new BroadcastChannel('pb'):null;
-function thumb(){
-  const c=document.createElement('canvas');c.width=360;c.height=Math.round(strip.height*360/strip.width);
-  c.getContext('2d').drawImage(strip,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.7);
-}
+function thumb(){const c=document.createElement('canvas');c.width=360;c.height=Math.round(out.height*360/out.width);c.getContext('2d').drawImage(out,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.7)}
 function pushBoard(vu){
-  try{
-    const a=JSON.parse(localStorage.getItem('pbq')||'[]');
-    a.unshift({u:vu,th:lastThumb,t:Date.now()});
-    localStorage.setItem('pbq',JSON.stringify(a.slice(0,5)));
-  }catch(e){}
+  const a=load('pbq')||[];a.unshift({u:vu,th:lastThumb,t:Date.now()});store('pbq',a.slice(0,5));
   if(BC)BC.postMessage('upd');
 }
 $('bq').onclick=()=>window.open(bqUrl(),'pbqr','popup,width=1280,height=720');
 
+/* ---------- daily counter ---------- */
+const today=()=>new Date().toLocaleDateString('sv');
+function count(){const c=load('pbcnt')||{};return c.d===today()?c.n:0}
+function bump(){store('pbcnt',{d:today(),n:count()+1})}
+
+/* ---------- local gallery (IndexedDB) + zip ---------- */
+const DB=new Promise((res,rej)=>{try{const r=indexedDB.open('pbdb',1);r.onupgradeneeded=()=>r.result.createObjectStore('s',{keyPath:'id',autoIncrement:true});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}});
+DB.catch(()=>{});
+async function tx(m,fn){const db=await DB;return new Promise((res,rej)=>{const t=db.transaction('s',m);let out;const r=fn(t.objectStore('s'));if(r)r.onsuccess=()=>out=r.result;t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error)})}
+const dbAdd=r=>tx('readwrite',s=>s.add(r)),dbPut=r=>tx('readwrite',s=>s.put(r)),dbAll=()=>tx('readonly',s=>s.getAll()),dbClr=()=>tx('readwrite',s=>s.clear());
+let galUrls=[];
+function dlBlob(b,name){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000)}
+const fname=r=>'photobooth-'+new Date(r.t).toLocaleString('sv').replace(/[: ]/g,'').replace(/-/g,'')+'-'+r.id+'.jpg';
+async function refreshGallery(){
+  let a=[];try{a=await dbAll()||[]}catch(e){$('gInfo').textContent='เบราว์เซอร์นี้เก็บรูปในเครื่องไม่ได้';return}
+  const pend=a.filter(r=>!r.url).length;
+  $('gInfo').textContent='เก็บไว้ในเครื่อง '+a.length+' ชุด · วันนี้ '+count()+' ชุด'+(pend?' · ยังไม่ได้อัปโหลด '+pend+' ชุด':'');
+  $('gUp').hidden=!pend||!cfg().cloud;$('gZip').disabled=!a.length;
+  galUrls.forEach(u=>URL.revokeObjectURL(u));galUrls=[];$('gal').innerHTML='';
+  a.slice(-24).reverse().forEach(r=>{const im=new Image(),u=URL.createObjectURL(r.blob);galUrls.push(u);im.src=u;im.alt='';im.title=new Date(r.t).toLocaleTimeString('th-TH');if(!r.url)im.className='pend';im.onclick=()=>dlBlob(r.blob,fname(r));$('gal').appendChild(im)});
+}
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){let c=-1;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return(c^-1)>>>0}
+async function zip(files){ // stored (no compression) — JPEGs don't shrink anyway
+  const parts=[],cen=[];let off=0;const enc=new TextEncoder();
+  for(const f of files){
+    const d=new Uint8Array(await f.blob.arrayBuffer()),nm=enc.encode(f.name),crc=crc32(d);
+    const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(8,0,true);h.setUint16(12,0x21,true);h.setUint32(14,crc,true);h.setUint32(18,d.length,true);h.setUint32(22,d.length,true);h.setUint16(26,nm.length,true);
+    parts.push(h,nm,d);
+    const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(14,0x21,true);c.setUint32(16,crc,true);c.setUint32(20,d.length,true);c.setUint32(24,d.length,true);c.setUint16(28,nm.length,true);c.setUint32(42,off,true);
+    cen.push(c,nm);off+=30+nm.length+d.length;
+  }
+  const cs=cen.reduce((s,x)=>s+x.byteLength,0),e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+  return new Blob([...parts,...cen,e],{type:'application/zip'});
+}
+$('gZip').onclick=async()=>{
+  const b=$('gZip');b.disabled=true;b.textContent='กำลังรวมไฟล์...';
+  try{const a=await dbAll();dlBlob(await zip(a.map(r=>({name:fname(r),blob:r.blob}))),'photobooth-'+today()+'.zip')}catch(e){toast('รวมไฟล์ไม่สำเร็จ')}
+  b.disabled=false;b.textContent='⬇ ดาวน์โหลดทั้งหมด (.zip)';
+};
+$('gUp').onclick=async()=>{
+  const b=$('gUp');b.disabled=true;let ok=0,bad=0;
+  for(const r of (await dbAll()).filter(r=>!r.url)){
+    b.textContent='กำลังอัปโหลด... ('+(ok+bad+1)+')';
+    try{r.url=await upload(r.blob);await dbPut(r);ok++;pushBoard(new URL('v.html?u='+encodeURIComponent(r.url),location.href).href)}catch(e){bad++}
+  }
+  b.disabled=false;b.textContent='☁ อัปโหลดรูปที่ค้าง';toast('อัปโหลดสำเร็จ '+ok+' ชุด'+(bad?' · ไม่สำเร็จ '+bad+' ชุด':''));refreshGallery();
+};
+let clrArm=0;
+$('gClr').onclick=async()=>{
+  if(!clrArm){clrArm=setTimeout(()=>{clrArm=0;$('gClr').textContent='ลบทั้งหมด'},3000);$('gClr').textContent='แตะอีกครั้งเพื่อยืนยันการลบ';return}
+  clearTimeout(clrArm);clrArm=0;$('gClr').textContent='ลบทั้งหมด';try{await dbClr()}catch(e){}refreshGallery();
+};
+
 draw();
-if(document.fonts)Promise.all([document.fonts.load('700 40px Mali'),document.fonts.load('800 40px Prompt'),document.fonts.load('400 26px Prompt')]).then(draw);
+if(document.fonts)Promise.all([document.fonts.load('700 40px Mali'),document.fonts.load('800 40px Prompt'),document.fonts.load('400 26px Prompt')]).then(draw).catch(()=>{});
+// ask the browser not to evict saved photos
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 </script>
 </body>
 </html>
