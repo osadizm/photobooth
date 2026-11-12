@@ -42,6 +42,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-within
 .chip input:checked+span{background:var(--gold);color:#2b1b3d;font-weight:600}
 label.t{display:block;color:var(--mute);font-size:.9rem;margin:16px 0 6px}
 .side{display:flex;flex-direction:column;align-items:center}
+.sb{padding:6px 10px;font-size:1.4rem;border-radius:12px;line-height:1.2}
+input[type=color]{width:44px;height:32px;border:0;padding:0;background:none;vertical-align:middle}
+.row label{color:var(--mute);font-size:.9rem}
 #strip{width:min(100%,300px);height:auto;border-radius:4px;box-shadow:0 14px 40px rgba(0,0,0,.45);background:#fff}
 .set{grid-column:1/-1;background:var(--panel);border-radius:16px;padding:12px 16px;color:var(--mute)}
 .set input{width:100%;margin:6px 0}
@@ -54,7 +57,7 @@ label.t{display:block;color:var(--mute);font-size:.9rem;margin:16px 0 6px}
 #idle{display:none;position:absolute;inset:0;z-index:3;background:rgba(21,13,32,.55);place-items:center;text-align:center;cursor:pointer;padding:20px}
 #idle b{display:block;font-size:clamp(2rem,8vw,4.5rem);font-weight:800;line-height:1.1}
 #idle span{display:inline-block;margin-top:18px;background:var(--red);padding:16px 36px;border-radius:999px;font-size:clamp(1.2rem,4vw,2rem);font-weight:600}
-#cornr{display:none;position:fixed;top:0;left:0;width:90px;height:90px;z-index:20}
+#cornr{display:none;position:fixed;top:8px;left:8px;z-index:20;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff;font-size:.85rem;opacity:.6;user-select:none;touch-action:none;cursor:pointer}
 body.kiosk{background:#150d20}
 body.kiosk main{max-width:none;padding:0;display:block}
 body.kiosk h1,body.kiosk .side,body.kiosk .set,body.kiosk main>section:first-of-type>:not(.booth){display:none}
@@ -92,6 +95,7 @@ body.kiosk:has(#ov:not([hidden])) .booth{margin-right:min(360px,40vw)}
 <button id="shoot" class="main" disabled>เริ่มถ่าย</button>
 <button id="fs">เต็มจอ</button>
 <button id="kiosk">โหมดตู้</button>
+<button id="bq">หน้า QR (จอที่สอง)</button>
 </div>
 </div>
 <label class="t" for="cam">เลือกกล้อง (กล้อง Fuji ที่ต่อเป็นเว็บแคมจะอยู่ในลิสต์นี้)</label>
@@ -105,10 +109,25 @@ body.kiosk:has(#ov:not([hidden])) .booth{margin-right:min(360px,40vw)}
 <div style="width:100%">
 <label class="t">ธีมงาน</label>
 <div class="chips" id="themes"></div>
+<div id="cust" class="row" hidden>
+<label>สีพื้น <input type="color" id="cbg" value="#ffd1dc"></label>
+<label>สีตัวอักษรและกรอบ <input type="color" id="cink" value="#3b2a6b"></label>
+<label style="width:100%">รูปพื้นหลัง (ไม่ใส่ก็ได้) <input type="file" id="cimg" accept="image/*"></label>
+</div>
 <label class="t" for="cap">ข้อความท้ายแถบ</label>
 <input type="text" id="cap" maxlength="28" style="width:100%">
 <label class="t" for="logo">โลโก้หรือกราฟิกของงาน (ไฟล์ PNG พื้นใส จะวางท้ายแถบ)</label>
 <input type="file" id="logo" accept="image/*" style="width:100%">
+<label class="t">สติกเกอร์ (แตะเพื่อเพิ่ม แล้วลากบนแถบรูปเพื่อย้าย)</label>
+<div class="chips" id="stk"></div>
+<label class="t" for="simg">อัปโหลดสติกเกอร์ของตัวเอง (PNG พื้นใสจะสวยสุด)</label>
+<input type="file" id="simg" accept="image/*" style="width:100%">
+<div id="sctl" class="row" hidden>
+<label>ขนาด <input type="range" id="ssz" min="30" max="400" value="120"></label>
+<label>หมุน <input type="range" id="srt" min="-180" max="180" value="0"></label>
+<button id="sdel">ลบอันนี้</button>
+</div>
+<div class="row"><button id="sclr">ล้างสติกเกอร์ทั้งหมด</button></div>
 <div class="row">
 <button id="dl" disabled>ดาวน์โหลด PNG</button>
 <button id="pb">สั่งปริ้น</button>
@@ -117,6 +136,7 @@ body.kiosk:has(#ov:not([hidden])) .booth{margin-right:min(360px,40vw)}
 <label class="t" for="pm">ขนาดกระดาษที่ปริ้น</label>
 <select id="pm" style="width:100%"><option value="2">4x6 นิ้ว (2 แถบ ตัดครึ่ง)</option><option value="1">2x6 นิ้ว (แถบเดียว)</option></select>
 <label class="t"><input type="checkbox" id="ap"> ปริ้นอัตโนมัติหลังถ่ายครบ 4 รูป</label>
+<label class="t"><input type="checkbox" id="nq"> ซ่อนแถบ QR ข้างจอในโหมดตู้ (ใช้หน้า QR แยกแทน)</label>
 </div>
 </section>
 
@@ -128,7 +148,7 @@ body.kiosk:has(#ov:not([hidden])) .booth{margin-right:min(360px,40vw)}
 </details>
 </main>
 
-<div id="cornr"></div>
+<div id="cornr">ออกจากโหมดตู้ (กดค้าง)</div>
 <div id="pr"></div>
 <style id="pg"></style>
 <div id="ov" hidden>
@@ -157,7 +177,16 @@ const THEMES={
  kids:{n:'การ์ตูน',bg:'#ffe9a8',ink:'#3b2a6b',acc:['#ff5d73','#4cc9f0','#7bd88f','#ff9f1c'],font:'Mali',cap:'Happy Birthday',deco:'confetti'},
  wedding:{n:'มินิมอล',bg:'#ffffff',ink:'#4d5b4a',acc:['#b79a5b'],font:'Prompt',cap:'Our Wedding Day',deco:'line'},
  corp:{n:'อีเวนต์',bg:'#10203f',ink:'#ffffff',acc:['#2ee6c5','#ff4f81'],font:'Prompt',cap:'#YourEvent',deco:'stripes'},
- school:{n:'โรงเรียน',bg:'#cfe8ff',ink:'#17356b',acc:['#ffd23f','#ff6b6b','#2fbf71'],font:'Mali',cap:'Fun Day',deco:'stars'}
+ school:{n:'โรงเรียน',bg:'#cfe8ff',ink:'#17356b',acc:['#ffd23f','#ff6b6b','#2fbf71'],font:'Mali',cap:'Fun Day',deco:'stars'},
+ pastel:{n:'พาสเทล',bg:'#fde4ec',ink:'#7a3b5a',acc:['#f7a8c4','#a8d8f0','#c9b8f2'],font:'Mali',cap:'Sweet Day',deco:'dots'},
+ neon:{n:'นีออน',bg:'#0e0b1f',ink:'#ffffff',acc:['#ff2e93','#2ef2ff'],font:'Prompt',cap:'Party Night',deco:'grid'},
+ film:{n:'ฟิล์มเรโทร',bg:'#1b1b1b',ink:'#f2e8cf',acc:['#f2b632'],font:'Prompt',cap:'Memories',deco:'film'},
+ beach:{n:'ทะเล',bg:'#bfe9f5',ink:'#0b4a6f',acc:['#1d8fc9','#ffd166'],font:'Mali',cap:'Summer Trip',deco:'waves'},
+ garden:{n:'สวนใบไม้',bg:'#e3f2dc',ink:'#245136',acc:['#4f9d69','#9bd18b','#f2c14e'],font:'Prompt',cap:'Garden Party',deco:'leaves',stk:'none'},
+ gold:{n:'ปาร์ตี้ทอง',bg:'#14111f',ink:'#f2c14e',acc:['#f2c14e','#fff3c4'],font:'Prompt',cap:'Celebrate',deco:'sparkle'},
+ sunset:{n:'พระอาทิตย์ตก',bg:'#ff9a76',bg2:'#6a4c93',ink:'#ffffff',acc:['#ffe29a','#ffffff'],font:'Mali',cap:'Golden Hour',deco:'sparkle'},
+ plain:{n:'เรียบ (เน้นโลโก้)',bg:'#ffffff',ink:'#222222',acc:['#222222'],font:'Prompt',cap:'Event Name',deco:'none'},
+ custom:{n:'กำหนดเอง',bg:'#ffd1dc',ink:'#3b2a6b',acc:['#3b2a6b'],font:'Prompt',cap:'My Event',deco:'none'}
 };
 let filter='ปกติ',theme='kids',shots=[],stream=null,busy=false,logo=null,capEdited=false,lastBlob=null;
 
@@ -169,8 +198,68 @@ function chips(el,obj,name,get,on){
   });
 }
 chips($('filters'),FILTERS,'f',(o,k)=>k,k=>{filter=k;v.style.filter=FILTERS[k]});
-chips($('themes'),THEMES,'t',o=>o.n,k=>{theme=k;if(!capEdited)$('cap').value=THEMES[k].cap;draw()});
+chips($('themes'),THEMES,'t',o=>o.n,k=>{theme=k;$('cust').hidden=k!=='custom';if(!capEdited)$('cap').value=THEMES[k].cap;draw()});
 $('cap').value=THEMES.kids.cap;
+
+// custom theme
+let bgImg=null;
+$('cbg').oninput=$('cink').oninput=draw;
+$('cimg').onchange=e=>{
+  const f=e.target.files[0];if(!f){bgImg=null;draw();return}
+  const i=new Image();i.onload=()=>{bgImg=i;draw()};i.src=URL.createObjectURL(f);
+};
+
+// stickers: preset emoji + uploaded images, placed on every strip
+const EMO=['🎉','🎂','🎈','🎁','⭐','✨','💖','🌸','🌈','🍀','🎀','👑','🥳','📸','🎵','🦄','🐻','🍓','🍦','☀️','🌴','🥂','🎓','💍','🏆'];
+let S=[],IM=[],sel=-1,drag=null;
+function saveS(){try{localStorage.setItem('pbs',JSON.stringify({S,IM:IM.map(m=>m.url)}))}catch(e){}}
+function pal(){
+  const el=$('stk');el.innerHTML='';
+  EMO.forEach(e=>{const b=document.createElement('button');b.className='sb';b.textContent=e;b.onclick=()=>addS({k:'e',v:e});el.appendChild(b)});
+  IM.forEach((m,i)=>{const b=document.createElement('button');b.className='sb';b.innerHTML='<img src="'+m.url+'" alt="" style="height:1.4rem;width:auto;display:block">';b.onclick=()=>addS({k:'i',v:i});el.appendChild(b)});
+}
+function addS(o){S.push(Object.assign({x:320,y:260+(S.length%6)*60,s:120,r:0},o));sel=S.length-1;syncCtl();draw();saveS()}
+function syncCtl(){const o=S[sel];$('sctl').hidden=!o;if(o){$('ssz').value=o.s;$('srt').value=Math.round(o.r*180/Math.PI)}}
+function drawStk(c){
+  S.forEach((o,i)=>{
+    c.save();c.translate(o.x,o.y);c.rotate(o.r);
+    if(o.k==='e'){c.font=o.s+'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillStyle='#000';c.fillText(o.v,0,0)}
+    else{const m=IM[o.v];if(m&&m.img.complete&&m.img.width){const q=o.s/Math.max(m.img.width,m.img.height);c.drawImage(m.img,-m.img.width*q/2,-m.img.height*q/2,m.img.width*q,m.img.height*q)}}
+    if(i===sel&&shots.length<4){c.strokeStyle='#e8472f';c.lineWidth=3;c.setLineDash([8,6]);c.strokeRect(-o.s/2,-o.s/2,o.s,o.s)}
+    c.restore();
+  });
+}
+$('simg').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const i=new Image();
+  i.onload=()=>{
+    const q=Math.min(1,300/Math.max(i.width,i.height)),cv=document.createElement('canvas');
+    cv.width=Math.round(i.width*q);cv.height=Math.round(i.height*q);
+    cv.getContext('2d').drawImage(i,0,0,cv.width,cv.height);
+    const url=cv.toDataURL('image/png'),im=new Image();
+    im.onload=()=>{IM.push({url,img:im});pal();addS({k:'i',v:IM.length-1})};im.src=url;
+  };
+  i.src=URL.createObjectURL(f);e.target.value='';
+};
+$('ssz').oninput=()=>{if(S[sel]){S[sel].s=+$('ssz').value;draw()}};
+$('srt').oninput=()=>{if(S[sel]){S[sel].r=$('srt').value*Math.PI/180;draw()}};
+$('ssz').onchange=$('srt').onchange=saveS;
+$('sdel').onclick=()=>{if(sel>=0){S.splice(sel,1);sel=-1;syncCtl();draw();saveS()}};
+$('sclr').onclick=()=>{S=[];sel=-1;syncCtl();draw();saveS()};
+function spt(e){const r=strip.getBoundingClientRect();return{x:(e.clientX-r.left)*strip.width/r.width,y:(e.clientY-r.top)*strip.height/r.height}}
+strip.style.touchAction='none';
+strip.onpointerdown=e=>{
+  const p=spt(e);sel=-1;
+  for(let i=S.length-1;i>=0;i--){const o=S[i];if(Math.abs(p.x-o.x)<o.s/2&&Math.abs(p.y-o.y)<o.s/2){sel=i;drag={dx:o.x-p.x,dy:o.y-p.y};try{strip.setPointerCapture(e.pointerId)}catch(x){}break}}
+  syncCtl();draw();
+};
+strip.onpointermove=e=>{if(drag&&sel>=0){const p=spt(e);S[sel].x=p.x+drag.dx;S[sel].y=p.y+drag.dy;draw()}};
+strip.onpointerup=()=>{if(drag){drag=null;saveS()}};
+try{
+  const d=JSON.parse(localStorage.getItem('pbs')||'{}');S=d.S||[];
+  (d.IM||[]).forEach(u=>{const im=new Image();im.onload=draw;im.src=u;IM.push({url:u,img:im})});
+}catch(e){}
+pal();
 $('cap').oninput=()=>{capEdited=true;draw()};
 $('logo').onchange=e=>{
   const f=e.target.files[0];if(!f){logo=null;draw();return}
@@ -248,7 +337,8 @@ function setKiosk(on){
 }
 $('kiosk').onclick=()=>{if(!stream){alert('เปิดกล้องก่อนเข้าโหมดตู้');return}setKiosk(true)};
 $('idle').onclick=run;
-$('cornr').onclick=()=>{taps++;clearTimeout(ct);ct=setTimeout(()=>{taps=0},2000);if(taps>=5){taps=0;setKiosk(false)}};
+$('cornr').onpointerdown=()=>{clearTimeout(ct);ct=setTimeout(()=>setKiosk(false),1500)};
+$('cornr').onpointerup=$('cornr').onpointerleave=()=>clearTimeout(ct);
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&document.body.classList.contains('kiosk')){setKiosk(false);return}
   if(e.code!=='Space'||/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName))return;
@@ -261,13 +351,15 @@ $('again').onclick=reset;$('close').onclick=reset;
 
 // drawing helpers
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-function star(c,x,y,r,col){c.fillStyle=col;c.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,q=i%2?r*.45:r;c.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q)}c.closePath();c.fill()}
+function star(c,x,y,r,col,n=5,k=.45){c.fillStyle=col;c.beginPath();for(let i=0;i<2*n;i++){const a=-Math.PI/2+i*Math.PI/n,q=i%2?r*k:r;c.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q)}c.closePath();c.fill()}
 function heart(c,x,y,r,col){c.fillStyle=col;c.beginPath();c.moveTo(x,y+r*.9);c.bezierCurveTo(x-r*1.6,y-r*.2,x-r*.6,y-r*1.2,x,y-r*.4);c.bezierCurveTo(x+r*.6,y-r*1.2,x+r*1.6,y-r*.2,x,y+r*.9);c.fill()}
 
 function draw(){
-  const T=THEMES[theme],c=sctx,W=640,P=40,pw=560,ph=420,gap=24,fy=P+4*ph+3*gap,H=fy+(logo?300:190);
+  let T=THEMES[theme];if(theme==='custom')T=Object.assign({},T,{bg:$('cbg').value,ink:$('cink').value});const c=sctx,W=640,P=40,pw=560,ph=420,gap=24,fy=P+4*ph+3*gap,H=fy+(logo?300:190);
   strip.height=H;
-  c.fillStyle=T.bg;c.fillRect(0,0,W,H);
+  if(T.bg2){const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,T.bg);g.addColorStop(1,T.bg2);c.fillStyle=g}else c.fillStyle=T.bg;
+  c.fillRect(0,0,W,H);
+  if(theme==='custom'&&bgImg){const q=Math.max(W/bgImg.width,H/bgImg.height),iw=bgImg.width*q,ih=bgImg.height*q;c.drawImage(bgImg,(W-iw)/2,(H-ih)/2,iw,ih)}
   const R=rng(7);
   if(T.deco==='confetti'||T.deco==='stars'){
     for(let i=0;i<110;i++){
@@ -278,9 +370,26 @@ function draw(){
     }
   }else if(T.deco==='line'){
     c.strokeStyle=T.acc[0];c.lineWidth=3;c.strokeRect(12,12,W-24,H-24);c.lineWidth=1;c.strokeRect(22,22,W-44,H-44);
-  }else{
+  }else if(T.deco==='stripes'){
     c.fillStyle=T.acc[0];c.beginPath();c.moveTo(0,0);c.lineTo(260,0);c.lineTo(0,260);c.fill();
     c.fillStyle=T.acc[1];c.beginPath();c.moveTo(W,H);c.lineTo(W-260,H);c.lineTo(W,H-260);c.fill();
+  }else if(T.deco==='dots'){
+    for(let y=0,r=0;y<H+60;y+=56,r++)for(let x=(r%2)*28;x<W+60;x+=56){c.fillStyle=T.acc[(x/28+r)%T.acc.length|0];c.beginPath();c.arc(x,y,10,0,7);c.fill()}
+  }else if(T.deco==='grid'){
+    c.strokeStyle=T.acc[1];c.globalAlpha=.3;c.lineWidth=2;
+    for(let x=0;x<=W;x+=40){c.beginPath();c.moveTo(x,0);c.lineTo(x,H);c.stroke()}
+    for(let y=0;y<=H;y+=40){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke()}
+    c.globalAlpha=1;c.strokeStyle=T.acc[0];c.lineWidth=6;c.shadowColor=T.acc[0];c.shadowBlur=24;c.strokeRect(10,10,W-20,H-20);c.shadowBlur=0;
+  }else if(T.deco==='film'){
+    c.fillStyle='#f2e8cf';
+    for(let y=14;y<H;y+=44){c.beginPath();c.roundRect?c.roundRect(11,y,18,26,4):c.rect(11,y,18,26);c.fill();c.beginPath();c.roundRect?c.roundRect(W-29,y,18,26,4):c.rect(W-29,y,18,26);c.fill()}
+  }else if(T.deco==='waves'){
+    c.lineWidth=5;
+    for(let y=10,k=0;y<H;y+=46,k++){c.strokeStyle=T.acc[k%2];c.beginPath();for(let x=0;x<=W;x+=8){const yy=y+Math.sin(x/40+k)*9;x?c.lineTo(x,yy):c.moveTo(x,yy)}c.stroke()}
+  }else if(T.deco==='leaves'){
+    for(let i=0;i<80;i++){c.fillStyle=T.acc[i%T.acc.length];c.beginPath();c.ellipse(R()*W,R()*H,10+R()*16,5+R()*6,R()*3.14,0,7);c.fill()}
+  }else if(T.deco==='sparkle'){
+    for(let i=0;i<90;i++){const x=R()*W,y=R()*H,s=5+R()*12;if(i%3)star(c,x,y,s,T.acc[i%T.acc.length],4,.2);else{c.fillStyle=T.acc[0];c.beginPath();c.arc(x,y,s/4,0,7);c.fill()}}
   }
   const ink=T.ink;
   for(let i=0;i<4;i++){
@@ -289,9 +398,10 @@ function draw(){
     else{c.fillStyle='rgba(128,128,150,.25)';c.fillRect(P,y,pw,ph);
       c.fillStyle=ink;c.globalAlpha=.4;c.font='600 64px Prompt,sans-serif';c.textAlign='center';c.fillText(String(i+1),W/2,y+ph/2+22);c.globalAlpha=1}
     c.strokeStyle=ink;c.lineWidth=6;c.strokeRect(P,y,pw,ph);
-    if(T.deco==='confetti'||T.deco==='stars')star(c,P+pw-6,y+6,34,T.acc[i%T.acc.length]);
-    else if(T.deco==='line')heart(c,P+pw-22,y+ph-22,14,T.acc[0]);
-    else{c.strokeStyle=T.acc[0];c.lineWidth=8;c.beginPath();c.moveTo(P-8,y+40);c.lineTo(P-8,y-8);c.lineTo(P+40,y-8);c.moveTo(P+pw+8,y+ph-40);c.lineTo(P+pw+8,y+ph+8);c.lineTo(P+pw-40,y+ph+8);c.stroke()}
+    const s=T.stk||({line:'heart',stripes:'br',grid:'br',film:'none',none:'none'}[T.deco])||'star';
+    if(s==='star')star(c,P+pw-6,y+6,34,T.acc[i%T.acc.length]);
+    else if(s==='heart')heart(c,P+pw-22,y+ph-22,14,T.acc[0]);
+    else if(s==='br'){c.strokeStyle=T.acc[0];c.lineWidth=8;c.beginPath();c.moveTo(P-8,y+40);c.lineTo(P-8,y-8);c.lineTo(P+40,y-8);c.moveTo(P+pw+8,y+ph-40);c.lineTo(P+pw+8,y+ph+8);c.lineTo(P+pw-40,y+ph+8);c.stroke()}
   }
   const wt=T.font==='Mali'?'700':'800',txt=$('cap').value;
   let fs=54;c.fillStyle=ink;c.textAlign='center';c.font=wt+' '+fs+'px '+T.font+',Prompt,sans-serif';
@@ -301,6 +411,7 @@ function draw(){
   c.fillText(new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}),W/2,fy+122);
   c.globalAlpha=1;
   if(logo){const r=Math.min(300/logo.width,110/logo.height),lw=logo.width*r,lh=logo.height*r;c.drawImage(logo,(W-lw)/2,fy+150+(110-lh)/2,lw,lh)}
+  drawStk(c);
 }
 function dl(){const a=document.createElement('a');a.download='photobooth-'+Date.now()+'.png';a.href=strip.toDataURL('image/png');a.click()}
 $('dl').onclick=dl;$('dl2').onclick=dl;
@@ -339,23 +450,42 @@ const setSt=t=>$('st').textContent=t;
 async function send(){
   $('retry').hidden=true;$('qrbox').style.display='none';$('qrbox').innerHTML='';setSt('กำลังอัปโหลดรูป...');
   try{
-    const u=await upload(lastBlob);
+    const u=await upload(lastBlob),vu=new URL('v.html?u='+encodeURIComponent(u),location.href).href;
+    pushBoard(vu);
     if(typeof QRCode==='undefined'){setSt('สร้าง QR ไม่ได้ ลิงก์รูปคือ '+u);return}
     $('qrbox').style.display='inline-block';
-    new QRCode($('qrbox'),{text:new URL('v.html?u='+encodeURIComponent(u),location.href).href,width:260,height:260,correctLevel:QRCode.CorrectLevel.M});
+    new QRCode($('qrbox'),{text:vu,width:260,height:260,correctLevel:QRCode.CorrectLevel.M});
     setSt('สแกนแล้วกดปุ่ม "บันทึกรูปลงมือถือ"');
   }catch(e){
     setSt(e.message==='nocfg'?'ยังไม่ได้ตั้งค่าอัปโหลด (ดูช่องตั้งค่าท้ายหน้า) ระหว่างนี้โหลดรูปสำรองไว้ก่อนได้':'อัปโหลดไม่สำเร็จ เช็กเน็ตแล้วกดลองอีกครั้ง หรือโหลดรูปสำรองไว้ก่อน');
-    $('retry').hidden=false;
+    $('retry').hidden=false;$('ov').hidden=false;
   }
 }
 async function finish(){
-  $('ov').hidden=false;
+  $('ov').hidden=document.body.classList.contains('kiosk')&&$('nq').checked;
   lastBlob=await new Promise(r=>strip.toBlob(r,'image/jpeg',.9));
+  lastThumb=thumb();
   send();
   if($('ap').checked)doPrint();
 }
 $('retry').onclick=send;
+
+// separate QR board page (qr.html): last 5 photos + QR, same browser/computer only
+let lastThumb='';
+const BC='BroadcastChannel' in window?new BroadcastChannel('pb'):null;
+function thumb(){
+  const c=document.createElement('canvas');c.width=360;c.height=Math.round(strip.height*360/strip.width);
+  c.getContext('2d').drawImage(strip,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.7);
+}
+function pushBoard(vu){
+  try{
+    const a=JSON.parse(localStorage.getItem('pbq')||'[]');
+    a.unshift({u:vu,th:lastThumb,t:Date.now()});
+    localStorage.setItem('pbq',JSON.stringify(a.slice(0,5)));
+  }catch(e){}
+  if(BC)BC.postMessage('upd');
+}
+$('bq').onclick=()=>window.open('qr.html','pbqr','popup,width=1280,height=720');
 
 draw();
 if(document.fonts)Promise.all([document.fonts.load('700 40px Mali'),document.fonts.load('800 40px Prompt'),document.fonts.load('400 26px Prompt')]).then(draw);

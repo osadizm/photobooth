@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QR รูปล่าสุด</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;800&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{color-scheme:dark}
+body{margin:0;background:#2b1b3d;color:#fff6ea;font-family:'Prompt',system-ui,sans-serif;padding:20px;min-height:100vh}
+h1{margin:0 0 16px;text-align:center;font-weight:800;font-size:clamp(1.4rem,3.5vw,2.4rem)}
+h1 span{color:#f2b632}
+#g{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;align-items:start}
+.c{background:#3a2650;border-radius:20px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.c.n{border:3px solid #f2b632}
+.c img{max-height:46vh;max-width:100%;width:auto;height:auto;border-radius:4px}
+.q{background:#fff;padding:8px;border-radius:12px;line-height:0}
+.q img,.q canvas{max-width:100%;height:auto!important}
+.c p{margin:0;color:#bfaed6;font-size:.95rem}
+.e{text-align:center;color:#bfaed6;grid-column:1/-1;font-size:1.2rem}
+</style>
+</head>
+<body>
+<h1>สแกน QR เพื่อ<span>เซฟรูปของคุณ</span></h1>
+<div id="g"></div>
+<script>
+const el=document.getElementById('g');
+function render(){
+  let a=[];try{a=JSON.parse(localStorage.getItem('pbq')||'[]')}catch(e){}
+  el.innerHTML='';
+  if(!a.length){el.innerHTML='<p class="e">ยังไม่มีรูป ถ่ายเสร็จแล้วรูปกับ QR จะขึ้นที่นี่</p>';return}
+  a.forEach((o,i)=>{
+    const d=document.createElement('div');d.className='c'+(i?'':' n');
+    const im=new Image();im.src=o.th;im.alt='';d.appendChild(im);
+    const q=document.createElement('div');q.className='q';d.appendChild(q);
+    const t=document.createElement('p');
+    t.textContent=(i?'':'ล่าสุด · ')+new Date(o.t).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    d.appendChild(t);el.appendChild(d);
+    if(window.QRCode)new QRCode(q,{text:o.u,width:176,height:176,correctLevel:QRCode.CorrectLevel.M});
+  });
+}
+render();
+if('BroadcastChannel' in window)new BroadcastChannel('pb').onmessage=render;
+window.addEventListener('storage',render);
+</script>
+</body>
+</html>
