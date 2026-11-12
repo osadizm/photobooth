@@ -9,160 +9,267 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mali:wght@600;700&family=Prompt:wght@400;600;800&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-:root{--bg:#2b1b3d;--panel:#3a2650;--ink:#fff6ea;--mute:#bfaed6;--red:#e8472f;--gold:#f2b632;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{--bg:#2b1b3d;--panel:#3a2650;--panel2:#4a3563;--deep:#150d20;--ink:#fff6ea;--mute:#bfaed6;--red:#e8472f;--gold:#f2b632;--ok:#4cd28a;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 *,*::before,*::after{box-sizing:inherit}
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:'Prompt',system-ui,sans-serif;min-height:100vh}
-main{max-width:1060px;margin:0 auto;padding:20px 16px 40px;display:grid;gap:24px;grid-template-columns:1fr}
-@media(min-width:860px){main{grid-template-columns:1.25fr 1fr;align-items:start}}
-h1{grid-column:1/-1;margin:0;font-weight:800;font-size:clamp(2.2rem,7vw,3.6rem);letter-spacing:-.02em;line-height:1}
+button,select,input{font:inherit;color:var(--ink)}
+button{border:0;border-radius:999px;padding:11px 20px;font-weight:600;cursor:pointer;background:var(--panel2);display:inline-flex;align-items:center;gap:8px;justify-content:center}
+button:hover:not(:disabled){filter:brightness(1.12)}
+button.main{background:var(--red);font-size:1.15rem;padding:14px 30px}
+button.ghost{background:transparent;border:2px solid var(--panel2)}
+button:disabled{opacity:.4;cursor:not-allowed}
+kbd{font:600 .75rem 'Prompt',sans-serif;background:rgba(0,0,0,.25);border-radius:6px;padding:2px 6px}
+select,input[type=text]{background:var(--deep);border:2px solid var(--panel2);border-radius:12px;padding:10px 12px;min-width:0;width:100%}
+input[type=file]{width:100%;color:var(--mute);font-size:.9rem}
+input[type=file]::file-selector-button{font:inherit;font-weight:600;border:0;border-radius:999px;padding:8px 16px;margin-right:10px;background:var(--panel2);color:var(--ink);cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-within{outline:3px solid var(--gold);outline-offset:2px}
+
+/* top bar */
+.top{max-width:1400px;margin:0 auto;padding:16px 16px 0;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+h1{margin:0;font-weight:800;font-size:clamp(1.8rem,5vw,2.6rem);letter-spacing:-.02em;line-height:1;margin-right:auto}
 h1 span{color:var(--gold)}
-.booth{background:var(--panel);border-radius:28px;padding:14px;border:3px solid var(--gold)}
-.screen{position:relative;aspect-ratio:4/3;background:#150d20;border-radius:16px;overflow:hidden}
+.pills,.tools{display:flex;flex-wrap:wrap;gap:8px}
+.pill{padding:7px 14px;font-size:.85rem;font-weight:600;background:var(--deep);border:2px solid var(--panel2)}
+.pill::before{content:'';width:9px;height:9px;border-radius:50%;background:var(--red)}
+.pill.ok::before{background:var(--ok)}
+.tools button{padding:8px 14px;font-size:.9rem}
+
+main{max-width:1400px;margin:0 auto;padding:16px 16px 24px;display:grid;gap:20px;grid-template-columns:1fr}
+@media(min-width:900px){main{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:start}}
+@media(min-width:1240px){main{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}.right{display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px;align-items:start}}
+
+/* booth */
+.booth{background:var(--panel);border-radius:24px;padding:14px;border:3px solid var(--gold)}
+.screen{position:relative;aspect-ratio:4/3;background:var(--deep);border-radius:16px;overflow:hidden}
 video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
-.msg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--mute)}
+.msg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--mute);cursor:pointer;font-size:1.05rem}
+.msg b{display:block;font-size:3.5rem;margin-bottom:6px}
 #count{position:absolute;inset:0;display:none;place-items:center;font-size:clamp(6rem,24vw,12rem);font-weight:800;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.6)}
+#shotN{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);padding:6px 18px;border-radius:999px;font-weight:600;font-size:clamp(1rem,2.4vw,1.4rem);z-index:2}
 #flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
 #flash.go{animation:fl .35s ease-out}
 @keyframes fl{from{opacity:.95}to{opacity:0}}
 #dots{display:flex;gap:8px;justify-content:center;margin:12px 0 4px}
-#dots i{width:12px;height:12px;border-radius:50%;background:#150d20;border:2px solid var(--gold)}
+#dots i{width:12px;height:12px;border-radius:50%;background:var(--deep);border:2px solid var(--gold);transition:background .2s}
 #dots i.on{background:var(--gold)}
-.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
-button,select,input{font:inherit;color:var(--ink)}
-button{border:0;border-radius:999px;padding:12px 22px;font-weight:600;cursor:pointer;background:#4a3563}
-button.main{background:var(--red);font-size:1.15rem;padding:14px 30px}
-button:disabled{opacity:.45;cursor:not-allowed}
-select,input[type=text]{background:#150d20;border:2px solid #4a3563;border-radius:12px;padding:10px 12px;min-width:0}
-button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-within{outline:3px solid var(--gold);outline-offset:2px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;justify-content:center;align-items:center}
+
+/* panels */
+.panel{background:var(--panel);border-radius:20px;padding:6px 16px 16px;margin-top:16px}
+.right .panel{margin-top:0}
+@media(max-width:1239px){.right .panel{margin-top:16px}}
+label.t{display:block;color:var(--mute);font-size:.9rem;margin:14px 0 6px}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:12px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{position:relative}
 .chip input{position:absolute;opacity:0;inset:0;cursor:pointer}
-.chip span{display:block;padding:8px 16px;border-radius:999px;background:#4a3563;pointer-events:none}
+.chip span{display:block;padding:8px 16px;border-radius:999px;background:var(--panel2);pointer-events:none}
 .chip input:checked+span{background:var(--gold);color:#2b1b3d;font-weight:600}
-label.t{display:block;color:var(--mute);font-size:.9rem;margin:16px 0 6px}
-.side{display:flex;flex-direction:column;align-items:center}
+.tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:4px;margin:10px 0 4px;background:var(--deep);padding:4px;border-radius:16px}
+.tabs button{padding:9px 6px;font-size:.88rem;background:transparent;color:var(--mute);white-space:nowrap;border-radius:12px}
+.tabs button[aria-selected=true]{background:var(--gold);color:#2b1b3d}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
+.row label{color:var(--mute);font-size:.9rem}
 .sb{padding:6px 10px;font-size:1.4rem;border-radius:12px;line-height:1.2}
 input[type=color]{width:44px;height:32px;border:0;padding:0;background:none;vertical-align:middle}
-.row label{color:var(--mute);font-size:.9rem}
-#strip{width:min(100%,300px);height:auto;border-radius:4px;box-shadow:0 14px 40px rgba(0,0,0,.45);background:#fff}
-.set{grid-column:1/-1;background:var(--panel);border-radius:16px;padding:12px 16px;color:var(--mute)}
-.set input{width:100%;margin:6px 0}
+.chk{display:flex;gap:10px;align-items:flex-start;color:var(--ink);font-size:.95rem;margin:14px 0 0;cursor:pointer}
+.chk input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--gold);flex:none}
+.chk small{display:block;color:var(--mute)}
+.note{color:var(--mute);font-size:.85rem;margin:6px 0 0}
+
+/* strip */
+.stripwrap{display:flex;flex-direction:column;align-items:center}
+#strip{max-width:100%;max-height:72vh;width:auto;height:auto;border-radius:4px;box-shadow:0 14px 40px rgba(0,0,0,.45);background:#fff}
+@media(max-width:899px){#strip{max-height:none;width:min(70%,260px)}}
+.stripwrap .actions{margin-top:14px}
+.keys{text-align:center;color:var(--mute);font-size:.85rem;margin:0 0 24px}
+
+/* result overlay */
 #ov{position:fixed;inset:0;background:rgba(15,8,25,.92);display:grid;place-items:center;padding:16px;z-index:9;overflow:auto}
-.card{background:var(--panel);border:3px solid var(--gold);border-radius:28px;padding:24px;max-width:420px;width:100%;text-align:center}
+.card{background:var(--panel);border:3px solid var(--gold);border-radius:28px;padding:24px;max-width:460px;width:100%;text-align:center}
 .card h2{margin:0 0 14px;font-size:1.6rem}
-#qrbox{background:#fff;padding:16px;border-radius:16px;display:none;margin:0 auto}
+#ovStrip{display:block;margin:0 auto 14px;max-height:34vh;max-width:100%;border-radius:4px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+#qrbox{background:#fff;padding:16px;border-radius:16px;display:none;margin:0 auto;line-height:0}
 #st{margin:14px 0 0;color:var(--mute)}
-.card .row{justify-content:center}
+#ovTimer{margin:6px 0 0;color:var(--mute);font-size:.85rem}
+.card .actions{margin-top:16px}
+
+/* settings dialog */
+dialog{background:var(--panel);color:var(--ink);border:3px solid var(--gold);border-radius:24px;padding:22px;max-width:520px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(15,8,25,.8)}
+dialog h2{margin:0 0 4px}
+dialog ol{color:var(--mute);font-size:.88rem;padding-left:20px;margin:8px 0}
+dialog .actions{justify-content:flex-end}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#1b1129;border:2px solid var(--gold);padding:12px 20px;border-radius:14px;z-index:30;opacity:0;pointer-events:none;transition:.25s;max-width:min(92vw,520px);text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%)}
+
+/* kiosk (guest-facing) */
 #idle{display:none;position:absolute;inset:0;z-index:3;background:rgba(21,13,32,.55);place-items:center;text-align:center;cursor:pointer;padding:20px}
 #idle b{display:block;font-size:clamp(2rem,8vw,4.5rem);font-weight:800;line-height:1.1}
-#idle span{display:inline-block;margin-top:18px;background:var(--red);padding:16px 36px;border-radius:999px;font-size:clamp(1.2rem,4vw,2rem);font-weight:600}
+#idle span{display:inline-block;margin-top:18px;background:var(--red);padding:16px 36px;border-radius:999px;font-size:clamp(1.2rem,4vw,2rem);font-weight:600;animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.06)}}
 #cornr{display:none;position:fixed;top:8px;left:8px;z-index:20;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff;font-size:.85rem;opacity:.6;user-select:none;touch-action:none;cursor:pointer}
-body.kiosk{background:#150d20}
+body.kiosk{background:var(--deep)}
+body.kiosk .top,body.kiosk .right,body.kiosk .left>.panel,body.kiosk .keys,body.kiosk .booth .actions{display:none}
 body.kiosk main{max-width:none;padding:0;display:block}
-body.kiosk h1,body.kiosk .side,body.kiosk .set,body.kiosk main>section:first-of-type>:not(.booth){display:none}
 body.kiosk .booth{border:0;border-radius:0;height:100vh;display:flex;flex-direction:column;padding:0}
 body.kiosk .screen{flex:1;aspect-ratio:auto;border-radius:0}
-body.kiosk .booth .row{display:none}
+body.kiosk #dots{margin:10px 0}
 body.kiosk:not(.running) #idle{display:grid}
 body.kiosk #cornr{display:block}
-body.kiosk #ov{inset:0 0 0 auto;width:min(360px,40vw);background:#1b1129;padding:12px;border-left:3px solid var(--gold)}
+body.kiosk #ov{inset:0 0 0 auto;width:min(380px,40vw);background:#1b1129;padding:12px;border-left:3px solid var(--gold)}
 body.kiosk #ov .card{border:0;padding:12px;background:transparent}
 body.kiosk #ov .card h2{font-size:1.3rem}
 body.kiosk #qrbox img,body.kiosk #qrbox canvas{max-width:100%;height:auto!important}
 body.kiosk #close,body.kiosk #dl2{display:none}
-body.kiosk:has(#ov:not([hidden])) .booth{margin-right:min(360px,40vw)}
+body.kiosk:has(#ov:not([hidden])) .booth{margin-right:min(380px,40vw)}
 #pr{display:none}
 @media print{body{background:#fff}:root{padding:0}body>*:not(#pr){display:none!important}#pr{display:flex;width:100%;height:100vh}#pr img{flex:1;min-width:0;height:100%;object-fit:contain;display:block}}
-@media(prefers-reduced-motion:reduce){#flash.go{animation:none}}
+@media(prefers-reduced-motion:reduce){#flash.go,#idle span{animation:none}}
 </style>
 </head>
 <body>
-<main>
+<header class="top">
 <h1>Photo<span>booth</span></h1>
+<div class="pills">
+<button class="pill" id="stCam" title="สถานะกล้อง">กล้อง: ยังไม่เปิด</button>
+<button class="pill" id="stUp" title="สถานะการอัปโหลดสำหรับ QR">QR: ยังไม่ตั้งค่า</button>
+</div>
+<div class="tools">
+<button id="fs" class="ghost">⛶ เต็มจอ</button>
+<button id="bq" class="ghost" title="เปิดหน้ารวม QR สำหรับจอที่สอง">🔳 หน้า QR</button>
+<button id="gear" class="ghost">⚙️ ตั้งค่า</button>
+</div>
+</header>
 
-<section>
+<main>
+<section class="left">
 <div class="booth">
 <div class="screen">
 <video id="v" playsinline muted></video>
-<div class="msg" id="msg">กด "เปิดกล้อง" แล้วอนุญาตให้เว็บใช้กล้อง</div>
+<div class="msg" id="msg" role="button" tabindex="0"><div><b>📷</b>แตะที่นี่เพื่อเปิดกล้อง<br><small>แล้วกด "อนุญาต" เมื่อเบราว์เซอร์ถาม</small></div></div>
+<div id="shotN" hidden></div>
 <div id="count"></div><div id="flash"></div>
 <div id="idle"><div><b id="idt"></b><span>แตะเพื่อเริ่มถ่าย</span></div></div>
 </div>
 <div id="dots"><i></i><i></i><i></i><i></i></div>
-<div class="row" style="justify-content:center">
-<button id="open">เปิดกล้อง</button>
-<button id="shoot" class="main" disabled>เริ่มถ่าย</button>
-<button id="fs">เต็มจอ</button>
-<button id="kiosk">โหมดตู้</button>
-<button id="bq">หน้า QR (จอที่สอง)</button>
+<div class="actions">
+<button id="open" class="main">📷 เปิดกล้อง</button>
+<button id="shoot" class="main" disabled>● เริ่มถ่าย 4 รูป <kbd>Space</kbd></button>
+<button id="kiosk" title="เต็มจอสำหรับให้แขกกดถ่ายเอง">🖥 โหมดตู้</button>
 </div>
 </div>
-<label class="t" for="cam">เลือกกล้อง (กล้อง Fuji ที่ต่อเป็นเว็บแคมจะอยู่ในลิสต์นี้)</label>
-<select id="cam" style="width:100%"><option>ยังไม่ได้เปิดกล้อง</option></select>
+<div class="panel">
+<div class="grid2">
+<div><label class="t" for="cam">กล้อง <small>(กล้อง Fuji ที่ต่อเป็นเว็บแคมจะอยู่ในลิสต์นี้)</small></label>
+<select id="cam"><option>ยังไม่ได้เปิดกล้อง</option></select></div>
+<div><label class="t" for="cd">นับถอยหลัง</label>
+<select id="cd"><option value="3">3 วินาที</option><option value="5">5 วินาที</option><option value="10">10 วินาที</option></select></div>
+</div>
 <label class="t">ฟิลเตอร์</label>
 <div class="chips" id="filters"></div>
+</div>
 </section>
 
-<section class="side">
-<canvas id="strip" width="640" height="1960"></canvas>
-<div style="width:100%">
-<label class="t">ธีมงาน</label>
+<section class="right">
+<div class="stripwrap">
+<canvas id="strip" width="640" height="1960" aria-label="ตัวอย่างแถบรูป"></canvas>
+<div class="actions">
+<button id="dl" disabled>⬇ ดาวน์โหลด</button>
+<button id="pb">🖨 ปริ้น</button>
+<button id="again" disabled>↺ ถ่ายใหม่</button>
+</div>
+</div>
+
+<div class="panel">
+<div class="tabs" role="tablist">
+<button role="tab" data-tab="theme" aria-selected="true">🎨 ธีม</button>
+<button role="tab" data-tab="text" aria-selected="false">✏️ ข้อความ</button>
+<button role="tab" data-tab="stk" aria-selected="false">⭐ สติกเกอร์</button>
+<button role="tab" data-tab="print" aria-selected="false">🖨 ปริ้น</button>
+</div>
+
+<div class="tp" data-p="theme">
+<label class="t">เลือกธีมงาน</label>
 <div class="chips" id="themes"></div>
 <div id="cust" class="row" hidden>
 <label>สีพื้น <input type="color" id="cbg" value="#ffd1dc"></label>
 <label>สีตัวอักษรและกรอบ <input type="color" id="cink" value="#3b2a6b"></label>
 <label style="width:100%">รูปพื้นหลัง (ไม่ใส่ก็ได้) <input type="file" id="cimg" accept="image/*"></label>
 </div>
+</div>
+
+<div class="tp" data-p="text" hidden>
 <label class="t" for="cap">ข้อความท้ายแถบ</label>
-<input type="text" id="cap" maxlength="28" style="width:100%">
-<label class="t" for="logo">โลโก้หรือกราฟิกของงาน (ไฟล์ PNG พื้นใส จะวางท้ายแถบ)</label>
-<input type="file" id="logo" accept="image/*" style="width:100%">
-<label class="t">สติกเกอร์ (แตะเพื่อเพิ่ม แล้วลากบนแถบรูปเพื่อย้าย)</label>
+<input type="text" id="cap" maxlength="28">
+<p class="note">ข้อความนี้ใช้เป็นหัวข้อตัวใหญ่ในหน้าเริ่มของโหมดตู้ด้วย</p>
+<label class="t" for="logo">โลโก้ของงาน (PNG พื้นใส วางท้ายแถบ)</label>
+<input type="file" id="logo" accept="image/*">
+<div class="row"><button id="logoClr" hidden>ลบโลโก้</button></div>
+</div>
+
+<div class="tp" data-p="stk" hidden>
+<label class="t">แตะเพื่อเพิ่ม แล้วลากบนแถบรูปเพื่อย้าย</label>
 <div class="chips" id="stk"></div>
 <label class="t" for="simg">อัปโหลดสติกเกอร์ของตัวเอง (PNG พื้นใสจะสวยสุด)</label>
-<input type="file" id="simg" accept="image/*" style="width:100%">
+<input type="file" id="simg" accept="image/*">
 <div id="sctl" class="row" hidden>
 <label>ขนาด <input type="range" id="ssz" min="30" max="400" value="120"></label>
 <label>หมุน <input type="range" id="srt" min="-180" max="180" value="0"></label>
 <button id="sdel">ลบอันนี้</button>
 </div>
 <div class="row"><button id="sclr">ล้างสติกเกอร์ทั้งหมด</button></div>
-<div class="row">
-<button id="dl" disabled>ดาวน์โหลด PNG</button>
-<button id="pb">สั่งปริ้น</button>
-<button id="again" disabled>ถ่ายใหม่</button>
 </div>
-<label class="t" for="pm">ขนาดกระดาษที่ปริ้น</label>
-<select id="pm" style="width:100%"><option value="2">4x6 นิ้ว (2 แถบ ตัดครึ่ง)</option><option value="1">2x6 นิ้ว (แถบเดียว)</option></select>
-<label class="t"><input type="checkbox" id="ap"> ปริ้นอัตโนมัติหลังถ่ายครบ 4 รูป</label>
-<label class="t"><input type="checkbox" id="nq"> ซ่อนแถบ QR ข้างจอในโหมดตู้ (ใช้หน้า QR แยกแทน)</label>
+
+<div class="tp" data-p="print" hidden>
+<label class="t" for="pm">ขนาดกระดาษ</label>
+<select id="pm"><option value="2">4x6 นิ้ว (2 แถบ ตัดครึ่ง)</option><option value="1">2x6 นิ้ว (แถบเดียว)</option></select>
+<label class="chk"><input type="checkbox" id="ap"><span>ปริ้นอัตโนมัติหลังถ่ายครบ 4 รูป</span></label>
+<label class="chk"><input type="checkbox" id="nq"><span>ซ่อนแถบ QR ข้างจอในโหมดตู้<small>ใช้เมื่อเปิด "หน้า QR" บนจอที่สองแทน</small></span></label>
+</div>
 </div>
 </section>
-
-<details class="set">
-<summary>ตั้งค่าอัปโหลดรูปสำหรับ QR (สำหรับคนจัดงาน)</summary>
-<input type="text" id="cloud" placeholder="Cloudinary cloud name" autocomplete="off">
-<input type="text" id="preset" placeholder="Upload preset (แบบ unsigned)" autocomplete="off">
-<input type="text" id="tag" placeholder="แท็กรูปของงานนี้ (เช่น pb-7xk2q ตั้งให้เดายาก)" autocomplete="off">
-<p style="margin:8px 0 4px;font-size:.85rem">ลิงก์หน้า QR สำหรับเปิดบน notebook (บันทึกก่อน แล้วคัดลอกไปเปิดบนเครื่องนั้น):</p>
-<input type="text" id="bqlink" readonly onclick="this.select()">
-<button id="saveCfg">บันทึก</button>
-</details>
 </main>
+<p class="keys">ทางลัด: <kbd>Space</kbd> ถ่าย / ถ่ายชุดใหม่ · <kbd>Esc</kbd> ออกจากโหมดตู้</p>
+
+<dialog id="setDlg">
+<h2>ตั้งค่าอัปโหลดรูปสำหรับ QR</h2>
+<ol>
+<li>สมัคร Cloudinary แล้วสร้าง Upload preset แบบ <b>Unsigned</b></li>
+<li>ถ้าจะใช้หน้า QR บนจอที่สอง ให้เปิด "Resource list" ในหน้า Security</li>
+</ol>
+<label class="t" for="cloud">Cloud name</label>
+<input type="text" id="cloud" autocomplete="off">
+<label class="t" for="preset">Upload preset (Unsigned)</label>
+<input type="text" id="preset" autocomplete="off">
+<label class="t" for="tag">แท็กรูปของงานนี้ (ตั้งให้เดายาก เช่น pb-7xk2q)</label>
+<input type="text" id="tag" autocomplete="off">
+<label class="t" for="bqlink">ลิงก์หน้า QR สำหรับเปิดบนเครื่องอื่น (แตะเพื่อคัดลอก)</label>
+<input type="text" id="bqlink" readonly>
+<div class="actions">
+<button id="cfgClose" class="ghost">ปิด</button>
+<button id="saveCfg" class="main">บันทึก</button>
+</div>
+</dialog>
 
 <div id="cornr">ออกจากโหมดตู้ (กดค้าง)</div>
+<div id="toast" role="status" aria-live="polite"></div>
 <div id="pr"></div>
 <style id="pg"></style>
 <div id="ov" hidden>
 <div class="card">
 <h2>สแกนเพื่อเซฟรูป</h2>
+<img id="ovStrip" alt="แถบรูปที่เพิ่งถ่าย">
 <div id="qrbox"></div>
 <p id="st"></p>
-<div class="row">
+<p id="ovTimer"></p>
+<div class="actions">
 <button id="retry" hidden>ลองส่งอีกครั้ง</button>
-<button id="dl2">ดาวน์โหลดสำรอง</button>
-<button id="pb2">สั่งปริ้น</button>
+<button id="dl2">⬇ ดาวน์โหลด</button>
+<button id="pb2">🖨 ปริ้น</button>
 <button id="close" class="main">ถ่ายชุดใหม่</button>
 </div>
 </div>
@@ -193,16 +300,40 @@ const THEMES={
 };
 let filter='ปกติ',theme='kids',shots=[],stream=null,busy=false,logo=null,capEdited=false,lastBlob=null;
 
-function chips(el,obj,name,get,on){
-  Object.keys(obj).forEach((k,i)=>{
+// remember the organiser's choices between reloads
+let UI={};try{UI=JSON.parse(localStorage.getItem('pbui')||'{}')}catch(e){}
+if(UI.filter in FILTERS)filter=UI.filter;
+if(UI.theme in THEMES)theme=UI.theme;
+capEdited=!!UI.capEdited;
+function saveUI(){
+  UI={filter,theme,capEdited,cap:$('cap').value,cd:$('cd').value,pm:$('pm').value,ap:$('ap').checked,nq:$('nq').checked,cbg:$('cbg').value,cink:$('cink').value,cam:UI.cam};
+  try{localStorage.setItem('pbui',JSON.stringify(UI))}catch(e){}
+}
+
+let tt=0;
+function toast(t,ms=3500){const el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('on'),ms)}
+
+function chips(el,obj,name,get,on,cur){
+  Object.keys(obj).forEach(k=>{
     const l=document.createElement('label');l.className='chip';
-    l.innerHTML='<input type="radio" name="'+name+'" '+(i?'':'checked')+'><span>'+get(obj[k],k)+'</span>';
-    l.firstChild.onchange=()=>on(k);el.appendChild(l);
+    l.innerHTML='<input type="radio" name="'+name+'" '+(k===cur?'checked':'')+'><span>'+get(obj[k],k)+'</span>';
+    l.firstChild.onchange=()=>{on(k);saveUI()};el.appendChild(l);
   });
 }
-chips($('filters'),FILTERS,'f',(o,k)=>k,k=>{filter=k;v.style.filter=FILTERS[k]});
-chips($('themes'),THEMES,'t',o=>o.n,k=>{theme=k;$('cust').hidden=k!=='custom';if(!capEdited)$('cap').value=THEMES[k].cap;draw()});
-$('cap').value=THEMES.kids.cap;
+chips($('filters'),FILTERS,'f',(o,k)=>k,k=>{filter=k;v.style.filter=FILTERS[k]},filter);
+chips($('themes'),THEMES,'t',o=>o.n,k=>{theme=k;$('cust').hidden=k!=='custom';if(!capEdited)$('cap').value=THEMES[k].cap;draw()},theme);
+v.style.filter=FILTERS[filter];$('cust').hidden=theme!=='custom';
+$('cap').value=capEdited&&UI.cap!=null?UI.cap:THEMES[theme].cap;
+['cd','pm'].forEach(k=>{if(UI[k])$(k).value=UI[k]});
+['ap','nq'].forEach(k=>{$(k).checked=!!UI[k]});
+if(UI.cbg)$('cbg').value=UI.cbg;if(UI.cink)$('cink').value=UI.cink;
+['cd','pm','ap','nq','cbg','cink'].forEach(k=>$(k).addEventListener('change',saveUI));
+
+// tabs
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.tp').forEach(p=>p.hidden=p.dataset.p!==b.dataset.tab);
+});
 
 // custom theme
 let bgImg=null;
@@ -263,35 +394,61 @@ try{
   (d.IM||[]).forEach(u=>{const im=new Image();im.onload=draw;im.src=u;IM.push({url:u,img:im})});
 }catch(e){}
 pal();
-$('cap').oninput=()=>{capEdited=true;draw()};
+$('cap').oninput=()=>{capEdited=true;draw();saveUI()};
+function setLogo(url){
+  if(!url){logo=null;$('logoClr').hidden=true;draw();return}
+  const img=new Image();img.onload=()=>{logo=img;$('logoClr').hidden=false;draw()};img.src=url;
+}
 $('logo').onchange=e=>{
-  const f=e.target.files[0];if(!f){logo=null;draw();return}
-  const img=new Image();img.onload=()=>{logo=img;draw()};img.src=URL.createObjectURL(f);
+  const f=e.target.files[0];if(!f)return;
+  const i=new Image();
+  i.onload=()=>{ // shrink and keep it so the logo survives a reload
+    const q=Math.min(1,600/Math.max(i.width,i.height)),cv=document.createElement('canvas');
+    cv.width=Math.round(i.width*q);cv.height=Math.round(i.height*q);
+    cv.getContext('2d').drawImage(i,0,0,cv.width,cv.height);
+    const url=cv.toDataURL('image/png');
+    try{localStorage.setItem('pblogo',url)}catch(x){}
+    setLogo(url);
+  };
+  i.src=URL.createObjectURL(f);e.target.value='';
 };
+$('logoClr').onclick=()=>{try{localStorage.removeItem('pblogo')}catch(x){}setLogo(null)};
+try{const l=localStorage.getItem('pblogo');if(l)setLogo(l)}catch(e){}
 
 // camera
+function pill(id,ok,t){$(id).classList.toggle('ok',ok);$(id).textContent=t}
 async function start(id){
   if(stream)stream.getTracks().forEach(t=>t.stop());
   const vc={width:{ideal:1920},height:{ideal:1080}};if(id)vc.deviceId={exact:id};
   try{
     stream=await navigator.mediaDevices.getUserMedia({video:vc,audio:false});
-    v.srcObject=stream;await v.play();$('msg').style.display='none';$('shoot').disabled=false;
+    v.srcObject=stream;await v.play();$('msg').style.display='none';$('shoot').disabled=false;$('open').hidden=true;
     const list=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');
     const cur=stream.getVideoTracks()[0].getSettings().deviceId;
     cam.innerHTML=list.map((d,i)=>'<option value="'+d.deviceId+'"'+(d.deviceId===cur?' selected':'')+'>'+(d.label||'กล้อง '+(i+1))+'</option>').join('');
+    UI.cam=cur;saveUI();
+    pill('stCam',true,'กล้อง: พร้อม');
   }catch(e){
+    if(id){stream=null;return start()} // saved camera unplugged: fall back to any camera
+    stream=null;$('shoot').disabled=true;$('open').hidden=false;
     $('msg').style.display='grid';
-    $('msg').textContent='เปิดกล้องไม่ได้: เช็กว่าอนุญาตกล้องแล้ว และเปิดหน้านี้ผ่าน HTTPS';
+    $('msg').innerHTML='<div><b>⚠️</b>เปิดกล้องไม่ได้<br><small>เช็กว่ากด "อนุญาต" กล้องแล้ว, ไม่มีโปรแกรมอื่นใช้กล้องอยู่ และเปิดหน้านี้ผ่าน HTTPS<br>แตะที่นี่เพื่อลองอีกครั้ง</small></div>';
+    pill('stCam',false,'กล้อง: เปิดไม่ได้');
   }
 }
-$('open').onclick=()=>start();
+$('open').onclick=()=>start(UI.cam);
+$('msg').onclick=()=>{if(!stream)start(UI.cam)};
+$('msg').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('msg').click()}};
+$('stCam').onclick=()=>{if(!stream)start(UI.cam);else cam.focus()};
 cam.onchange=()=>start(cam.value);
+// open the camera straight away if permission was already given last time
+(async()=>{try{const p=await navigator.permissions.query({name:'camera'});if(p.state==='granted')start(UI.cam)}catch(e){}})();
 $('fs').onclick=async()=>{
   const d=document,e=d.documentElement,on=d.fullscreenElement||d.webkitFullscreenElement;
   try{
     if(on){await (d.exitFullscreen||d.webkitExitFullscreen).call(d)}
     else{const f=e.requestFullscreen||e.webkitRequestFullscreen;if(!f)throw 0;await f.call(e)}
-  }catch(err){alert('เบราว์เซอร์นี้เปิดเต็มจอจากปุ่มไม่ได้ ลองกด F11 (คอม) หรือเพิ่มหน้านี้ไว้ที่หน้าจอโฮม (มือถือ/iPad) แล้วเปิดจากไอคอน')}
+  }catch(err){toast('เบราว์เซอร์นี้เปิดเต็มจอจากปุ่มไม่ได้ ลองกด F11 (คอม) หรือเพิ่มหน้านี้ไว้ที่หน้าจอโฮม (มือถือ/iPad) แล้วเปิดจากไอคอน')}
 };
 
 // capture
@@ -313,43 +470,50 @@ function snap(){
 }
 function resetDots(){document.querySelectorAll('#dots i').forEach(i=>i.className='')}
 async function run(){
-  if(busy)return;busy=true;document.body.classList.add('running');shots=[];$('shoot').disabled=true;$('dl').disabled=$('again').disabled=true;
+  if(busy||!stream)return;busy=true;
+  clearTimeout(rt);clearInterval(rti);$('ov').hidden=true; // never show the previous guest's QR while shooting
+  document.body.classList.add('running');shots=[];$('shoot').disabled=true;$('dl').disabled=$('again').disabled=true;
   resetDots();draw();
+  const secs=+$('cd').value||3;
   for(let n=0;n<4;n++){
+    $('shotN').hidden=false;$('shotN').textContent='รูปที่ '+(n+1)+' / 4';
     $('count').style.display='grid';
-    for(let s=3;s>0;s--){$('count').textContent=s;await wait(1000)}
+    for(let s=secs;s>0;s--){$('count').textContent=s;await wait(1000)}
+    $('count').textContent='ยิ้ม!';await wait(250);
     $('count').style.display='none';
     const f=$('flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
     shots.push(snap());document.querySelectorAll('#dots i')[n].className='on';draw();
     await wait(700);
   }
+  $('shotN').hidden=true;
   busy=false;document.body.classList.remove('running');$('shoot').disabled=false;$('dl').disabled=$('again').disabled=false;
   finish();
 }
 $('shoot').onclick=run;
 
 // kiosk mode: guest-facing flow (idle -> shoot -> result/QR -> idle)
-let rt=null,ct=0,taps=0;
+let rt=null,rti=null,ct=0;
 function setKiosk(on){
   document.body.classList.toggle('kiosk',on);
+  if(on&&!cfg().cloud)toast('ยังไม่ได้ตั้งค่าอัปโหลด แขกจะสแกน QR ไม่ได้ (ตั้งค่าที่ปุ่ม ⚙️)',6000);
   $('idt').textContent=$('cap').value;
   try{
     if(on){const e=document.documentElement,f=e.requestFullscreen||e.webkitRequestFullscreen;if(f)f.call(e)}
     else if(document.fullscreenElement)document.exitFullscreen();
   }catch(x){}
 }
-$('kiosk').onclick=()=>{if(!stream){alert('เปิดกล้องก่อนเข้าโหมดตู้');return}setKiosk(true)};
+$('kiosk').onclick=()=>{if(!stream){toast('เปิดกล้องก่อนเข้าโหมดตู้');return}setKiosk(true)};
 $('idle').onclick=run;
 $('cornr').onpointerdown=()=>{clearTimeout(ct);ct=setTimeout(()=>setKiosk(false),1500)};
 $('cornr').onpointerup=$('cornr').onpointerleave=()=>clearTimeout(ct);
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&document.body.classList.contains('kiosk')){setKiosk(false);return}
-  if(e.code!=='Space'||/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName))return;
+  if(e.code!=='Space'||/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName)||$('setDlg').open)return;
   if(busy||!stream)return;
   e.preventDefault();
   if($('ov').hidden||document.body.classList.contains('kiosk'))run();else reset();
 });
-function reset(){clearTimeout(rt);shots=[];resetDots();$('dl').disabled=$('again').disabled=true;$('ov').hidden=true;draw()}
+function reset(){clearTimeout(rt);clearInterval(rti);$('ovTimer').textContent='';shots=[];resetDots();$('dl').disabled=$('again').disabled=true;$('ov').hidden=true;draw()}
 $('again').onclick=reset;$('close').onclick=reset;
 
 // drawing helpers
@@ -421,7 +585,7 @@ $('dl').onclick=dl;$('dl2').onclick=dl;
 
 // print: 4x6 in (2 strips side by side, cut in half) or single 2x6 in strip
 async function doPrint(){
-  if(shots.length<4){alert('ถ่ายให้ครบ 4 รูปก่อนค่อยสั่งปริ้น');return}
+  if(shots.length<4){toast('ถ่ายให้ครบ 4 รูปก่อนค่อยสั่งปริ้น');return}
   const n=$('pm').value==='2'?2:1;
   $('pg').textContent='@page{size:'+(n*2)+'in 6in;margin:0}';
   const u=strip.toDataURL('image/png');
@@ -435,7 +599,17 @@ $('pb').onclick=doPrint;$('pb2').onclick=doPrint;
 function cfg(){let s={};try{s=JSON.parse(localStorage.getItem('pb')||'{}')}catch(e){}return{cloud:s.cloud||CFG.cloud,preset:s.preset||CFG.preset,tag:s.tag||'photobooth'}}
 function bqUrl(){const c=cfg();return new URL('qr.html?c='+encodeURIComponent(c.cloud)+'&t='+encodeURIComponent(c.tag),location.href).href}
 const c0=cfg();$('cloud').value=c0.cloud;$('preset').value=c0.preset;$('tag').value=c0.tag;$('bqlink').value=bqUrl();
-$('saveCfg').onclick=()=>{try{localStorage.setItem('pb',JSON.stringify({cloud:$('cloud').value.trim(),preset:$('preset').value.trim(),tag:$('tag').value.trim()||'photobooth'}))}catch(e){}$('bqlink').value=bqUrl();$('saveCfg').textContent='บันทึกแล้ว'};
+function upPill(){const c=cfg();pill('stUp',!!(c.cloud&&c.preset),c.cloud&&c.preset?'QR: พร้อม':'QR: ยังไม่ตั้งค่า')}
+upPill();
+$('saveCfg').onclick=()=>{
+  if(!$('cloud').value.trim()||!$('preset').value.trim()){toast('กรอก Cloud name และ Upload preset ให้ครบก่อน');return}
+  try{localStorage.setItem('pb',JSON.stringify({cloud:$('cloud').value.trim(),preset:$('preset').value.trim(),tag:$('tag').value.trim()||'photobooth'}))}catch(e){}
+  $('bqlink').value=bqUrl();upPill();$('setDlg').close();toast('บันทึกการตั้งค่าแล้ว');
+};
+const openCfg=()=>{const d=$('setDlg');if(d.showModal)d.showModal();else d.setAttribute('open','')};
+$('gear').onclick=$('stUp').onclick=openCfg;
+$('cfgClose').onclick=()=>$('setDlg').close();
+$('bqlink').onclick=async()=>{$('bqlink').select();try{await navigator.clipboard.writeText($('bqlink').value);toast('คัดลอกลิงก์แล้ว')}catch(e){}};
 async function upload(blob){
   const {cloud,preset,tag}=cfg();if(!cloud||!preset)throw new Error('nocfg');
   let err;
@@ -461,14 +635,18 @@ async function send(){
     new QRCode($('qrbox'),{text:vu,width:260,height:260,correctLevel:QRCode.CorrectLevel.M});
     setSt('สแกนแล้วกดปุ่ม "บันทึกรูปลงมือถือ"');
   }catch(e){
-    setSt(e.message==='nocfg'?'ยังไม่ได้ตั้งค่าอัปโหลด (ดูช่องตั้งค่าท้ายหน้า) ระหว่างนี้โหลดรูปสำรองไว้ก่อนได้':'อัปโหลดไม่สำเร็จ เช็กเน็ตแล้วกดลองอีกครั้ง หรือโหลดรูปสำรองไว้ก่อน');
+    setSt(e.message==='nocfg'?'ยังไม่ได้ตั้งค่าอัปโหลด (กดปุ่ม ⚙️ ตั้งค่า ด้านบน) ระหว่างนี้ดาวน์โหลดรูปไว้ก่อนได้':'อัปโหลดไม่สำเร็จ เช็กเน็ตแล้วกด "ลองส่งอีกครั้ง" หรือดาวน์โหลดรูปไว้ก่อน');
     $('retry').hidden=false;$('ov').hidden=false;
   }
 }
 async function finish(){
   $('ov').hidden=document.body.classList.contains('kiosk')&&$('nq').checked;
   lastBlob=await new Promise(r=>strip.toBlob(r,'image/jpeg',.9));
-  lastThumb=thumb();
+  lastThumb=thumb();$('ovStrip').src=lastThumb;
+  if(document.body.classList.contains('kiosk')){ // clear the guest's QR automatically so the next guest starts clean
+    let left=90;$('ovTimer').textContent='';clearInterval(rti);
+    rti=setInterval(()=>{left--;$('ovTimer').textContent=left<=30?'จะปิดเองใน '+left+' วินาที':'';if(left<=0)reset()},1000);
+  }
   send();
   if($('ap').checked)doPrint();
 }
